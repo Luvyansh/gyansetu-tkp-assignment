@@ -65,9 +65,7 @@ def check_consistency(state: dict[str, Any]) -> ValidationCheck:
     content_periods = {p.period_number for p in classroom.periods}
 
     if plan.total_periods and len(plan.periods) != plan.total_periods:
-        issues.append(
-            f"total_periods={plan.total_periods} but len(periods)={len(plan.periods)}"
-        )
+        issues.append(f"total_periods={plan.total_periods} but len(periods)={len(plan.periods)}")
 
     missing_in_content = plan_periods - content_periods
     extra_in_content = content_periods - plan_periods
@@ -91,9 +89,7 @@ def check_consistency(state: dict[str, Any]) -> ValidationCheck:
                 content.entry_ticket,
                 content.exit_ticket,
                 " ".join(content.checkpoint_questions),
-                " ".join(
-                    a.name + " " + a.instructions for a in content.classroom_activities
-                ),
+                " ".join(a.name + " " + a.instructions for a in content.classroom_activities),
             ]
         ).lower()
         for concept in planned_concepts:
@@ -128,8 +124,7 @@ def check_consistency(state: dict[str, Any]) -> ValidationCheck:
         # Soft: warn only if majority missing
         if len(uncovered) > max(1, len(planned_concepts) // 2):
             issues.append(
-                "concepts_covered poorly referenced in content: "
-                + ", ".join(sorted(uncovered)[:8])
+                "concepts_covered poorly referenced in content: " + ", ".join(sorted(uncovered)[:8])
             )
 
     if assessments is not None:

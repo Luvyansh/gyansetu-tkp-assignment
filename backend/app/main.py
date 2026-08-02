@@ -49,9 +49,7 @@ def create_app() -> FastAPI:
     )
 
     app.state.limiter = limiter
-    app.add_exception_handler(
-        RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler)
-    )
+    app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
     app.add_middleware(SlowAPIMiddleware)
 
     origins = settings.cors_origin_list

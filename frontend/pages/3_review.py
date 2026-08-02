@@ -54,9 +54,7 @@ def render() -> None:
                 st.session_state.tkp = tkp
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code == 404:
-                    st.info(
-                        "TKP is not ready yet. Return to progress and wait for publish."
-                    )
+                    st.info("TKP is not ready yet. Return to progress and wait for publish.")
                     if st.button("Back to progress"):
                         st.session_state.view = "progress"
                         st.rerun()

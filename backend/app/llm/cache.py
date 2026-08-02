@@ -21,12 +21,8 @@ def cache_key(stage_name: str, input_payload: Any, model: str) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-async def get_cached(
-    session: AsyncSession, content_hash: str
-) -> dict[str, Any] | None:
-    result = await session.execute(
-        select(LLMCache).where(LLMCache.content_hash == content_hash)
-    )
+async def get_cached(session: AsyncSession, content_hash: str) -> dict[str, Any] | None:
+    result = await session.execute(select(LLMCache).where(LLMCache.content_hash == content_hash))
     row = result.scalar_one_or_none()
     if row is None:
         return None

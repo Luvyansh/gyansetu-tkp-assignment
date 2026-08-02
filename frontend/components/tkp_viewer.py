@@ -16,8 +16,7 @@ def _safe(text: Any) -> str:
 
 def _md_block(title: str, body: str) -> None:
     st.markdown(
-        f'<div class="gs-card-soft"><h4>{_safe(title)}</h4>'
-        f"<p>{_safe(body)}</p></div>",
+        f'<div class="gs-card-soft"><h4>{_safe(title)}</h4><p>{_safe(body)}</p></div>',
         unsafe_allow_html=True,
     )
 
@@ -94,7 +93,7 @@ def _render_overview(tkp: dict[str, Any]) -> None:
         st.markdown("#### Validation")
         st.markdown(
             f'<span class="gs-badge{" amber" if not passed else ""}">'
-            f'{"Passed" if passed else "Needs review"}</span>',
+            f"{'Passed' if passed else 'Needs review'}</span>",
             unsafe_allow_html=True,
         )
 
@@ -217,8 +216,8 @@ def _render_assessments(tkp: dict[str, Any]) -> None:
             concepts = q.get("concepts_tested") or []
             st.markdown(
                 f'<div class="gs-card-soft"><h4>Q{i}. [{_safe(q.get("question_type", ""))}] '
-                f'{_safe(q.get("prompt", ""))}</h4>{opt_html}'
-                f'<p><strong>Answer:</strong> {_safe(q.get("answer_key", ""))}</p>'
+                f"{_safe(q.get('prompt', ''))}</h4>{opt_html}"
+                f"<p><strong>Answer:</strong> {_safe(q.get('answer_key', ''))}</p>"
                 f"<p>{_safe(q.get('rubric') or '')}</p></div>",
                 unsafe_allow_html=True,
             )
@@ -239,7 +238,7 @@ def _render_gap_analysis(tkp: dict[str, Any]) -> None:
             f'<div class="gs-card-soft"><h4>{_safe(g.get("misconception", ""))} '
             f'<span class="gs-badge{" amber" if severity != "low" else ""}">'
             f"{_safe(severity)}</span></h4>"
-            f'<p><strong>Diagnostic:</strong> {_safe(g.get("diagnostic_question", ""))}</p>'
+            f"<p><strong>Diagnostic:</strong> {_safe(g.get('diagnostic_question', ''))}</p>"
             f"<ul>"
             + "".join(f"<li>{_safe(a)}</li>" for a in (g.get("remedial_actions") or []))
             + "</ul></div>",
@@ -294,10 +293,10 @@ def render_tkp(tkp: dict[str, Any]) -> None:
     st.markdown(
         f'<p class="gs-display" style="font-size:1.85rem;margin-bottom:0.25rem;'
         f'font-family:Literata,Georgia,serif;color:#1C1917;font-weight:700;">'
-        f'{_safe(header.get("topic") or "Teacher Knowledge Package")}</p>'
+        f"{_safe(header.get('topic') or 'Teacher Knowledge Package')}</p>"
         f'<p style="color:#57534E;margin-bottom:1rem;">'
-        f'{_safe(header.get("subject", ""))} · {_safe(header.get("grade", ""))} · '
-        f'{_safe(header.get("chapter", ""))}</p>',
+        f"{_safe(header.get('subject', ''))} · {_safe(header.get('grade', ''))} · "
+        f"{_safe(header.get('chapter', ''))}</p>",
         unsafe_allow_html=True,
     )
 

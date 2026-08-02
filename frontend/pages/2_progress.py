@@ -76,9 +76,7 @@ def _stepper_html(active_stage: str | None, status: str) -> str:
 
 
 def _apply_event(event: dict) -> None:
-    st.session_state.current_stage = event.get("stage") or st.session_state.get(
-        "current_stage"
-    )
+    st.session_state.current_stage = event.get("stage") or st.session_state.get("current_stage")
     try:
         st.session_state.progress_pct = float(event.get("progress") or 0.0)
     except (TypeError, ValueError):
@@ -109,7 +107,7 @@ def render() -> None:
         f'font-family:Literata,Georgia,serif;font-weight:700;color:#1C1917;">'
         f"Building your package</p>"
         f'<p style="color:#57534E;">Job <code>{sanitize_html(str(job_id)[:8])}…</code> · '
-        f'{sanitize_html(st.session_state.get("upload_filename") or "document")}</p>',
+        f"{sanitize_html(st.session_state.get('upload_filename') or 'document')}</p>",
         unsafe_allow_html=True,
     )
 

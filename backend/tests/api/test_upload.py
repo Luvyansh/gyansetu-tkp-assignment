@@ -76,6 +76,7 @@ async def test_accept_tiny_pdf_mocked_pipeline(
         return None
 
     client.mock_db.refresh = AsyncMock(side_effect=lambda obj: None)  # type: ignore[attr-defined]
+
     # Simulate flush assigning IDs
     def add(obj):
         if obj.__class__.__name__ == "Document" or hasattr(obj, "original_filename"):

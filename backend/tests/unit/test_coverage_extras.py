@@ -101,7 +101,9 @@ async def test_n10_publish_mocked(sample_tkp, mock_session_factory) -> None:
         "activities": sample_tkp.activities.model_dump(mode="json"),
         "assessments": sample_tkp.assessments.model_dump(mode="json"),
         "gap_analysis": sample_tkp.gap_analysis.model_dump(mode="json"),
-        "validation": sample_tkp.validation.model_dump(mode="json") if sample_tkp.validation else None,
+        "validation": sample_tkp.validation.model_dump(mode="json")
+        if sample_tkp.validation
+        else None,
         "document_structure": {"parser_route": "pymupdf_text"},
     }
     with (

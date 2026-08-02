@@ -89,8 +89,7 @@ def _render_lesson_plan(tkp: TeacherKnowledgePackage, path: Path) -> None:
     for period in plan.periods:
         story.append(
             _p(
-                f"Period {period.period_number}: {period.title} "
-                f"({period.duration_minutes} min)",
+                f"Period {period.period_number}: {period.title} ({period.duration_minutes} min)",
                 styles["heading"],
             )
         )
@@ -99,9 +98,7 @@ def _render_lesson_plan(tkp: TeacherKnowledgePackage, path: Path) -> None:
             for obj in period.objectives:
                 story.append(_p(f"• {obj}", styles["body"]))
         if period.concepts_covered:
-            story.append(
-                _p("Concepts: " + ", ".join(period.concepts_covered), styles["body"])
-            )
+            story.append(_p("Concepts: " + ", ".join(period.concepts_covered), styles["body"]))
         if period.pacing_rationale:
             story.append(_p(period.pacing_rationale, styles["body"]))
 
@@ -166,9 +163,7 @@ def _render_teacher_guide(tkp: TeacherKnowledgePackage, path: Path) -> None:
     if tkp.gap_analysis.gaps:
         story.append(_p("Learning gaps", styles["heading"]))
         for gap in tkp.gap_analysis.gaps:
-            story.append(
-                _p(f"{gap.misconception} [{gap.severity.value}]", styles["subhead"])
-            )
+            story.append(_p(f"{gap.misconception} [{gap.severity.value}]", styles["subhead"]))
             story.append(_p(f"Diagnostic: {gap.diagnostic_question}", styles["body"]))
             for action in gap.remedial_actions:
                 story.append(_p(f"• {action}", styles["body"]))
@@ -189,9 +184,7 @@ def _render_assessment_book(tkp: TeacherKnowledgePackage, path: Path) -> None:
     story: list[Any] = []
     cls = tkp.classification
     story.append(_p(f"Assessment Book — {cls.chapter}", styles["title"]))
-    story.append(
-        _p(f"Total marks: {tkp.assessments.total_marks}", styles["body"])
-    )
+    story.append(_p(f"Total marks: {tkp.assessments.total_marks}", styles["body"]))
     story.append(Spacer(1, 8))
 
     def _section(title: str, questions: list[AssessmentQuestion]) -> None:
@@ -213,9 +206,7 @@ def _render_assessment_book(tkp: TeacherKnowledgePackage, path: Path) -> None:
             if q.rubric:
                 story.append(_p(f"Rubric: {q.rubric}", styles["body"]))
             if q.concepts_tested:
-                story.append(
-                    _p("Concepts: " + ", ".join(q.concepts_tested), styles["body"])
-                )
+                story.append(_p("Concepts: " + ", ".join(q.concepts_tested), styles["body"]))
 
     _section("Formative", tkp.assessments.formative)
     _section("Summative", tkp.assessments.summative)
