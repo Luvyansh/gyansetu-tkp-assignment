@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import close_progress_queue, publish_progress
+from backend.app.config import get_settings
 from backend.app.db.models import Document, Job, StageOutput, TKPPackage
 from backend.app.db.session import AsyncSessionLocal
 from backend.app.logging_config import get_logger
@@ -83,7 +84,7 @@ async def build_initial_state(job: Job, document: Document) -> dict[str, Any]:
         "gap_analysis": None,
         "validation": None,
         "validation_retry_count": 0,
-        "max_validation_retries": 2,
+        "max_validation_retries": get_settings().max_validation_retries,
         "retry_targets": [],
         "validation_feedback": "",
         "tkp": None,
@@ -238,11 +239,17 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                     raise TypeError("run_pipeline must return a dict-like state")
 
             if final_state.get("error"):
+                # Prefer the pipeline's reported stage; never persist the
+                # unmappable sentinels "failed"/"error" (UI historically pinned
+                # those onto Document Intelligence).
+                fail_stage = str(final_state.get("current_stage") or "").strip()
+                if fail_stage.lower() in {"", "failed", "error"}:
+                    fail_stage = job.current_stage or "validation"
                 await _update_job(
                     session,
                     job,
                     status="failed",
-                    current_stage=final_state.get("current_stage") or "error",
+                    current_stage=fail_stage,
                     progress_pct=float(final_state.get("progress_pct") or job.progress_pct),
                     error=str(final_state["error"]),
                 )

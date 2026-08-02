@@ -1,0 +1,40 @@
+[theme]
+base = "light"
+primaryColor = "#3F5A4E"
+backgroundColor = "#F7F5F0"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1C1917"
+linkColor = "#3F5A4E"
+borderColor = "#D0CBC2"
+codeBackgroundColor = "#EEEAE2"
+codeTextColor = "#1C1917"
+font = "DM Sans:https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+headingFont = "Literata:https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+baseFontSize = 15
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+showWidgetBorder = true
+showSidebarBorder = true
+linkUnderline = false
+
+# Semantic status colors (readable on light backgrounds)
+redColor = "#9B2C2C"
+orangeColor = "#9A7B12"
+yellowColor = "#C4A020"
+greenColor = "#3F5A4E"
+blueColor = "#3D6B8A"
+grayColor = "#57534E"
+
+[theme.sidebar]
+backgroundColor = "#1C1917"
+secondaryBackgroundColor = "#292524"
+textColor = "#F7F5F0"
+borderColor = "#3F3A36"
+primaryColor = "#8FA99B"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false

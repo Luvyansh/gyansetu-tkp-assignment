@@ -36,13 +36,14 @@ def _stage_index(stage: str | None) -> int:
     if not stage:
         return -1
     key = stage.strip().lower().replace(" ", "_")
+    # Sentinels are not pipeline stages — never fuzzy-match them onto index 0.
+    if key in {"pending", "queued", "failed", "error", "unknown"}:
+        return -1
     if key in _STAGE_ORDER:
         return _STAGE_ORDER[key]
     for name, idx in _STAGE_ORDER.items():
         if name in key or key in name:
             return idx
-    if key in {"pending", "queued"}:
-        return -1
     if key in {"completed", "done"}:
         return len(PIPELINE_STAGES)
     return -1
@@ -54,11 +55,16 @@ def _stepper_html(active_stage: str | None, status: str) -> str:
         active_idx = len(PIPELINE_STAGES)
     rows: list[str] = []
     for i, (_key, label) in enumerate(PIPELINE_STAGES):
-        # Only pin "failed" onto a known stage index — never coerce unknown/error
-        # onto Document Intelligence (index 0).
+        # Only pin "failed" onto a *known* stage index — never coerce
+        # unknown/error/failed sentinels onto Document Intelligence (index 0).
         if status == "failed" and active_idx >= 0 and i == active_idx:
             state = "is-active"
             meta = "failed"
+        elif status == "failed" and active_idx < 0:
+            # No known stage to pin — leave all steps neutral rather than
+            # inventing a Document Intelligence failure.
+            state = "is-pending"
+            meta = "waiting"
         elif i < active_idx or status == "completed":
             state = "is-done"
             meta = "done"
