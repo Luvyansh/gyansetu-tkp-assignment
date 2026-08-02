@@ -5,27 +5,40 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Iterator
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
 
 _DEFAULT_BASE = "http://localhost:8000"
 _API_PREFIX = "/api/v1"
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+@lru_cache
+def _load_env() -> None:
+    """Load repo-root ``.env`` once so Streamlit shares ``BACKEND_API_KEY`` with FastAPI."""
+    load_dotenv(_REPO_ROOT / ".env", override=False)
 
 
 def _api_key() -> str:
+    _load_env()
+    # Single canonical name (same as backend Settings.backend_api_key).
+    # TKP_API_KEY kept as an optional override for shell/CI only.
     return (
-        os.environ.get("TKP_API_KEY")
-        or os.environ.get("BACKEND_API_KEY")
-        or os.environ.get("STREAMLIT_API_KEY")
+        os.environ.get("BACKEND_API_KEY")
+        or os.environ.get("TKP_API_KEY")
         or ""
-    )
+    ).strip()
 
 
 def _base_url() -> str:
+    _load_env()
     return (
         os.environ.get("TKP_API_URL")
-        or os.environ.get("STREAMLIT_API_URL")
+        or os.environ.get("BACKEND_URL")
         or _DEFAULT_BASE
     ).rstrip("/")
 
