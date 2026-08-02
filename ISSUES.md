@@ -5,6 +5,42 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] Stage 3 extracted off-topic grounded concepts (topic-scope gap)
+
+**Found:** Knowledge extraction returned "Photosynthesis" alongside Newton's Laws
+concepts for a Physics / Laws of Motion chapter. Not a hallucination — see the
+golden-sample entry below — but Stage 3 treated any grounded passage as in-scope
+teaching knowledge.
+
+**Cause:** `n3_knowledge_extraction.md` required `source_ref` grounding but never
+constrained extraction to Stage 2's classified subject/topic/chapter. The node
+passed classification only as soft context.
+
+**Fix:** Prompt now mandates topic-scope exclusion for unrelated source text;
+`filter_knowledge_to_scope` post-filters ExtractedKnowledge against classification
+(+ kept-concept vocabulary). Unit test covers the stem_sample fixture pattern.
+Smoke: Stage 3 returns only the three Newton's Laws concepts.
+**Status:** Fixed (this commit)
+
+---
+
+## [2026-08-02] Golden `stem_sample.pdf` intentionally contains Photosynthesis text
+
+**Found:** Raw PyMuPDF text of `evals/golden_dataset/stem_sample.pdf` includes a
+verbatim Photosynthesis / chlorophyll paragraph after Newton's third law
+(case-insensitive grep hit_count=1). Stage 3's earlier Photosynthesis concept
+had a faithful `source_ref.quote` — not a fabricated citation.
+
+**Cause:** Golden STEM fixture mixes on-topic Laws of Motion content with an
+off-topic but real sentence (useful for scope / groundedness tests).
+
+**Fix:** None to the PDF. Documented so future 429/hallucination triage does not
+misread this as LLM invention. Scope filtering is handled in the Stage 3 entry
+above.
+**Status:** Accepted (fixture data quality — intentional)
+
+---
+
 ## [2026-08-02] Wrong Gemini model IDs → free-tier limit:0 (not quota exhaustion)
 
 **Found:** Stage 2 (`educational_classification`) failed with
