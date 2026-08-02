@@ -11,6 +11,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from backend.app.llm.base import LLMResponse
+from backend.app.llm.errors import DailyEmbedQuotaError, is_daily_embed_quota_error
 from backend.app.llm.rate_limit import rate_limited
 from backend.app.logging_config import get_logger
 
@@ -94,12 +95,17 @@ class GeminiClient:
 
         for i in range(0, len(texts), max_batch):
             batch = texts[i : i + max_batch]
-            async with rate_limited(DEFAULT_EMBED, weight=len(batch)):
-                response = await self._client.aio.models.embed_content(
-                    model=DEFAULT_EMBED,
-                    contents=cast(Any, batch),
-                    config=embed_config,
-                )
+            try:
+                async with rate_limited(DEFAULT_EMBED, weight=len(batch)):
+                    response = await self._client.aio.models.embed_content(
+                        model=DEFAULT_EMBED,
+                        contents=cast(Any, batch),
+                        config=embed_config,
+                    )
+            except Exception as exc:
+                if is_daily_embed_quota_error(exc):
+                    raise DailyEmbedQuotaError() from exc
+                raise
             result.extend(self._parse_embeddings(response, expected=len(batch)))
         return result
 

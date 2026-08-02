@@ -5,6 +5,52 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] Daily embed quota — Stage 9 re-embedded Stage 3 chunks
+
+**Found:** Job `efcb33eb-fe15-4c15-b617-229d609319c9` hit
+`EmbedContentRequestsPerDayPerUserPerProjectPerModel-FreeTier` (limit **1000**/day).
+UI/`current_stage` showed **gap_analysis** because `parallel_generation` leaves that
+label until Stage 9 finishes; the stack trace is Stage **9** groundedness
+(`score_text_against_chunks` → `router.embed([query, *chunks])`).
+
+**Stage 8 (gap_analysis) embed count: 0.** `n8_gap_analysis` only calls
+`router.generate` — no `embed` path.
+
+**Structlog evidence (job `efcb33eb`, terminal after n5):**
+| Event | Weight (texts) | Meaning |
+|---|---|---|
+| `gemini_rpm_throttle` @ 20:45:21Z | 40 | Stage 9 groundedness batch |
+| `gemini_rpm_throttle` @ 20:45:55Z | 40 | Stage 9 groundedness batch |
+| `gemini_rpm_throttle` @ 20:46:03Z | 40 | Stage 9 groundedness batch |
+| `pipeline_failed` @ 20:46:59Z | — | daily `PerDay` RESOURCE_EXHAUSTED |
+
+≈ **120 text-units** attempted in Stage 9 alone before the daily cap (weights sum
+to 120). Stage 3 `n3_knowledge_extraction_done` for this job scrolled out of the
+reload buffer; earlier same-day runs on similar PDFs logged `chunks: 2` on tiny
+fixtures, while live STEM uploads produce ~40-chunk batches (weight 40 =
+1 query + ~39 chunks per period score).
+
+**Redundancy (confirmed in code, not a guess):**
+`score_text_against_chunks` embedded `[cleaned, *usable_chunks]` **once per**
+period/assessment. For `T` scored texts and `C` chunks that is **T×(1+C)** API
+texts, of which **T×C** are identical chunk strings already embedded in Stage 3
+and stored on `knowledge_chunks.embedding`. Stage 3 correctly wrote them once;
+Stage 9 ignored them.
+
+**Example:** C=39, T=4 (3 periods + assessments) → Stage 3: **39**; Stage 9 old:
+**4×40=160** (39×4=156 duplicate chunk embeds). Matches the weight-40 throttle
+pattern on this job.
+
+**Fix:** Persist `knowledge_chunk_embeddings` in graph state; groundedness loads
+Stage 3 / DB vectors and embeds **queries only** (one batch). Content-hash
+embed cache (same `llm_cache` table, stage=`embedding`) skips identical strings
+across retries/smoke runs. Daily `PerDay` EmbedContent errors map to
+"Daily free-tier embedding quota reached, resets at midnight Pacific" instead of
+raw Google JSON in the UI.
+**Status:** Fixed this commit — no live re-run (daily quota still exhausted)
+
+---
+
 ## [2026-08-03] Validation-retry exhaust misattributed to Document Intelligence
 
 **Found:** Job `99dcc2bc-694c-4b8e-9ed9-d058fe5bb291` correctly failed groundedness

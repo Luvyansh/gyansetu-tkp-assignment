@@ -79,7 +79,7 @@ async def _run_mocked_pipeline(pdf_path: Path) -> dict[str, Any]:
             content = make_period_content(int(ip["period_number"])).model_dump(mode="json")
         return LLMResponse(content=content, model="eval-mock", latency_ms=1)
 
-    async def _embed(texts: list[str]) -> list[list[float]]:
+    async def _embed(texts: list[str], **_kwargs: object) -> list[list[float]]:
         return [[1.0, 0.0, 0.0] for _ in texts]
 
     router.generate = AsyncMock(side_effect=_generate)
@@ -125,6 +125,7 @@ async def _run_mocked_pipeline(pdf_path: Path) -> dict[str, Any]:
         "classification": None,
         "knowledge": None,
         "knowledge_chunk_texts": [],
+        "knowledge_chunk_embeddings": [],
         "teaching_plan": None,
         "classroom_content": None,
         "activities": None,

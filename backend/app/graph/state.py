@@ -37,6 +37,7 @@ class TKPState(BaseModel):
     classification: EducationalClassification | None = None
     knowledge: ExtractedKnowledge | None = None
     knowledge_chunk_texts: list[str] = Field(default_factory=list)
+    knowledge_chunk_embeddings: list[list[float]] = Field(default_factory=list)
 
     teaching_plan: TeachingPlan | None = None
     classroom_content: ClassroomContentBundle | None = None
@@ -78,6 +79,7 @@ class TKPGraphState(TypedDict, total=False):
     classification: Annotated[Any, _replace]
     knowledge: Annotated[Any, _replace]
     knowledge_chunk_texts: Annotated[Any, _replace]
+    knowledge_chunk_embeddings: Annotated[Any, _replace]
 
     teaching_plan: Annotated[Any, _replace]
     classroom_content: Annotated[Any, _replace]

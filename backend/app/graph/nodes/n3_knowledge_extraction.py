@@ -65,7 +65,7 @@ async def run(state: dict[str, Any]) -> dict[str, Any]:
         if chunks:
             for i in range(0, len(chunks), EMBED_BATCH):
                 batch = chunks[i : i + EMBED_BATCH]
-                embeddings.extend(await router.embed(batch))
+                embeddings.extend(await router.embed(batch, session=session, stage=STAGE))
 
         document_id = as_uuid(state["document_id"])
         chunk_rows: list[tuple[str, str | None, list[float] | None]] = []
@@ -82,12 +82,14 @@ async def run(state: dict[str, Any]) -> dict[str, Any]:
         concepts=len(knowledge.concepts),
         definitions=len(knowledge.definitions),
         chunks=len(chunks),
+        embed_texts=len(embeddings),
         model=resp.model,
     )
 
     return {
         "knowledge": dump_model(knowledge),
         "knowledge_chunk_texts": chunks,
+        "knowledge_chunk_embeddings": embeddings,
         "current_stage": STAGE,
         "progress_pct": 35.0,
         "error": None,
