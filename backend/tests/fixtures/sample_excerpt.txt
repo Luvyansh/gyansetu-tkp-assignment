@@ -1,0 +1,5 @@
+Newton's Laws of Motion
+Newton's first law states that an object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force. This is also called the law of inertia.
+Newton's second law states that the acceleration of an object is dependent upon two variables: the net force acting upon the object and the mass of the object. Force equals mass times acceleration (F = ma).
+Newton's third law states that for every action, there is an equal and opposite reaction.
+Photosynthesis is the process by which green plants convert light energy into chemical energy. Chlorophyll absorbs sunlight; carbon dioxide and water produce glucose and oxygen.

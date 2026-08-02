@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Sync deps
+        run: uv sync --extra dev
+      - name: Ruff
+        run: uv run ruff check backend frontend evals
+      - name: Ruff format check
+        run: uv run ruff format --check backend frontend evals
+      - name: Mypy
+        run: uv run mypy backend/app
+      - name: Bandit
+        run: uv run bandit -c pyproject.toml -r backend/app
+
+  test:
+    name: Pytest (≥80% coverage)
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: test-gemini-key-not-real
+      GROQ_API_KEY: test-groq-key-not-real
+      BACKEND_API_KEY: test-backend-api-key-32chars!!
+      DATABASE_URL: postgresql+asyncpg://tkp:tkp@localhost:5433/tkp
+      ENVIRONMENT: local
+      LOG_LEVEL: WARNING
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: tkp
+          POSTGRES_PASSWORD: tkp
+          POSTGRES_DB: tkp
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U tkp -d tkp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Sync deps
+        run: uv sync --extra dev
+      - name: Pytest
+        run: uv run pytest -m "not live_llm"
+
+  eval-smoke:
+    name: Eval smoke (mock)
+    runs-on: ubuntu-latest
+    env:
+      EVAL_MOCK: "1"
+      GEMINI_API_KEY: eval-placeholder-key
+      BACKEND_API_KEY: eval-backend-api-key-32chars!!
+      DATABASE_URL: postgresql+asyncpg://tkp:tkp@localhost:5433/tkp
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: tkp
+          POSTGRES_PASSWORD: tkp
+          POSTGRES_DB: tkp
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U tkp -d tkp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Sync deps
+        run: uv sync --extra dev
+      - name: Run mocked evals
+        run: uv run python evals/run_ragas_eval.py --mock

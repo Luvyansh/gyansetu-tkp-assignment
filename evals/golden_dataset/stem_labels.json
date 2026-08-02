@@ -1,0 +1,16 @@
+{
+  "document": "stem_sample.pdf",
+  "domain": "STEM",
+  "expected_concepts": [
+    "inertia",
+    "force",
+    "Newton's first law",
+    "Newton's second law",
+    "Newton's third law",
+    "acceleration",
+    "F = ma"
+  ],
+  "expected_subject_keywords": ["Physics", "Motion"],
+  "min_concepts": 3,
+  "notes": "Hand-labeled golden concepts for Newton's laws excerpt"
+}

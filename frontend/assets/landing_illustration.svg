@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="Open book becoming a knowledge package">
+  <defs>
+    <linearGradient id="board" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5B7C6E"/>
+      <stop offset="100%" stop-color="#3F5A4E"/>
+    </linearGradient>
+    <linearGradient id="pageL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCFAF6"/>
+      <stop offset="100%" stop-color="#E6E0D4"/>
+    </linearGradient>
+    <linearGradient id="pageR" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FCFAF6"/>
+      <stop offset="100%" stop-color="#D6D0C4"/>
+    </linearGradient>
+    <linearGradient id="pkg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C4A020"/>
+      <stop offset="100%" stop-color="#9A7B12"/>
+    </linearGradient>
+  </defs>
+  <!-- desk shadow -->
+  <ellipse cx="240" cy="320" rx="155" ry="14" fill="#1C1917" opacity="0.14"/>
+  <!-- chalkboard -->
+  <rect x="52" y="24" width="376" height="162" rx="12" fill="url(#board)"/>
+  <rect x="66" y="38" width="348" height="134" rx="6" fill="#292524" opacity="0.35"/>
+  <!-- chalk marks: lesson outline -->
+  <path d="M92 72h88M92 92h110M92 112h64" stroke="#F3EFE6" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M248 78c30-20 72-16 90 10" fill="none" stroke="#E8D48A" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- document icon on board -->
+  <rect x="320" y="100" width="54" height="48" rx="4" fill="#FCFAF6" opacity="0.92"/>
+  <path d="M330 114h34M330 126h28M330 138h22" stroke="#3F5A4E" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- chalk ledge -->
+  <rect x="52" y="178" width="376" height="11" rx="2" fill="#9A7B12"/>
+  <rect x="74" y="180" width="32" height="5" rx="1.5" fill="#F3EFE6" opacity="0.9"/>
+  <rect x="116" y="181" width="16" height="4" rx="1.5" fill="#C4A020"/>
+  <!-- open book -->
+  <path d="M118 248c42-26 82-26 122-6v76c-42-16-82-16-122 8z" fill="url(#pageL)" stroke="#3F5A4E" stroke-width="2.8"/>
+  <path d="M362 248c-42-26-82-26-122-6v76c42-16 82-16 122 8z" fill="url(#pageR)" stroke="#3F5A4E" stroke-width="2.8"/>
+  <path d="M240 242v76" stroke="#1C1917" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M146 266h68M146 284h58M146 302h48" stroke="#5B7C6E" stroke-width="2.2" stroke-linecap="round" opacity="0.55"/>
+  <path d="M262 266h68M262 284h58M262 302h48" stroke="#5B7C6E" stroke-width="2.2" stroke-linecap="round" opacity="0.55"/>
+  <!-- knowledge package ribbon -->
+  <rect x="218" y="230" width="44" height="58" rx="5" fill="url(#pkg)"/>
+  <path d="M226 242h28M226 254h22M226 266h18" stroke="#FCFAF6" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  <path d="M232 288l8-6 8 6v-14h-16z" fill="#FCFAF6" opacity="0.85"/>
+</svg>
