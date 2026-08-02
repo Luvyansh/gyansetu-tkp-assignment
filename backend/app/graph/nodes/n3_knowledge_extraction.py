@@ -13,6 +13,7 @@ from backend.app.graph.nodes.helpers import (
     full_document_text,
     truncate,
 )
+from backend.app.graph.nodes.scope_filter import filter_knowledge_to_scope
 from backend.app.graph.prompt_loader import load_prompt
 from backend.app.llm.router import get_llm_router
 from backend.app.logging_config import get_logger
@@ -34,7 +35,9 @@ async def run(state: dict[str, Any]) -> dict[str, Any]:
     classification = state.get("classification") or {}
 
     user_prompt = (
-        f"Classification context:\n{classification}\n\n"
+        f"Classification context (authoritative scope — extract ONLY within this "
+        f"subject/topic/chapter; ignore unrelated source passages):\n"
+        f"{classification}\n\n"
         f"Extract grounded knowledge from this document:\n{text_for_llm}"
     )
 
@@ -52,6 +55,10 @@ async def run(state: dict[str, Any]) -> dict[str, Any]:
             },
         )
         knowledge = ExtractedKnowledge.model_validate(resp.content)
+        knowledge = filter_knowledge_to_scope(
+            knowledge,
+            classification if isinstance(classification, dict) else None,
+        )
 
         chunks = chunk_text(full_text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
         embeddings: list[list[float]] = []
