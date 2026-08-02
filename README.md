@@ -91,10 +91,13 @@ Minimum acceptable: faithfulness ≥ 0.85 (see `FAITHFULNESS_THRESHOLD`).
 
 ### Security audit notes
 
-`uv run bandit -r backend/app` reports no medium/high issues. `uv run pip-audit` may flag
-transitive CVEs in `langgraph` / `langchain-*` / `ragas` / `pytest` (dev) pulled by the eval
-stack; fixes require major-version bumps not yet compatible with `pytest-asyncio` on Python 3.12.
-Re-run after upstream releases; production attack surface is the FastAPI upload path, not eval CLI.
+See **[SECURITY.md](SECURITY.md)** for the pip-audit CVE reachability analysis
+(what is patched, what is installed-but-unreachable and why, and what would require
+a major-version bump). Do not treat raw `pip-audit` exit codes as exploitability
+without that document. Application controls: API key auth, CORS allowlist, upload
+validation, rate limits, secret redaction, and `bandit` on `backend/app`.
+
+Engineering issue log: **[ISSUES.md](ISSUES.md)**.
 
 ## Deployment
 
