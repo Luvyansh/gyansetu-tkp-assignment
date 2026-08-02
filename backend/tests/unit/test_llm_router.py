@@ -57,14 +57,45 @@ async def test_rate_limit_falls_back_to_groq() -> None:
 
 
 @pytest.mark.asyncio
+async def test_rate_limit_falls_back_via_gemini_once() -> None:
+    """Eligible stages call _call_gemini_once; first 429 must hit Groq (no retry burn)."""
+    gemini = AsyncMock()
+    gemini.generate_structured = AsyncMock(
+        side_effect=Exception("429 RESOURCE_EXHAUSTED quota exceeded")
+    )
+    groq = AsyncMock()
+    groq.generate_structured = AsyncMock(
+        return_value=LLMResponse(
+            content={"value": "groq-after-429"},
+            model="llama-3.3-70b-versatile",
+            latency_ms=12,
+        )
+    )
+    router = LLMRouter(settings=_settings(), gemini=gemini, groq=groq)
+    resp = await router.generate(
+        stage_name="educational_classification",
+        system_prompt="sys",
+        user_prompt="user",
+        response_model=_Tiny,
+    )
+    assert resp.content["value"] == "groq-after-429"
+    assert resp.model == "llama-3.3-70b-versatile"
+    assert gemini.generate_structured.await_count == 1
+    groq.generate_structured.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_rate_limit_without_groq_reraises() -> None:
     gemini = AsyncMock()
     router = LLMRouter(settings=_settings(groq_api_key=None), gemini=gemini, groq=None)
-    with patch.object(
-        router,
-        "_call_gemini",
-        AsyncMock(side_effect=Exception("429 rate limit")),
-    ), pytest.raises(Exception, match="429"):
+    with (
+        patch.object(
+            router,
+            "_call_gemini_with_retries",
+            AsyncMock(side_effect=Exception("429 rate limit")),
+        ),
+        pytest.raises(Exception, match="429"),
+    ):
         await router.generate(
             stage_name="activity_generation",
             system_prompt="s",
@@ -79,11 +110,14 @@ async def test_non_eligible_stage_does_not_fallback() -> None:
     groq = AsyncMock()
     router = LLMRouter(settings=_settings(), gemini=gemini, groq=groq)
     assert "teaching_planner" not in GROQ_ELIGIBLE
-    with patch.object(
-        router,
-        "_call_gemini",
-        AsyncMock(side_effect=Exception("429 rate limit")),
-    ), pytest.raises(Exception, match="429"):
+    with (
+        patch.object(
+            router,
+            "_call_gemini_with_retries",
+            AsyncMock(side_effect=Exception("429 rate limit")),
+        ),
+        pytest.raises(Exception, match="429"),
+    ):
         await router.generate(
             stage_name="teaching_planner",
             system_prompt="s",

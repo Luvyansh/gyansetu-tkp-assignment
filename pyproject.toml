@@ -67,8 +67,9 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["backend/tests"]
 markers = [
     "slow: hits real LLM APIs; excluded from default runs",
+    "live_llm: requires real GEMINI_API_KEY + GROQ_API_KEY from .env",
 ]
-addopts = "-q --cov=backend/app --cov-report=term-missing --cov-fail-under=80"
+addopts = "-q -m \"not slow and not live_llm\" --cov=backend/app --cov-report=term-missing --cov-fail-under=80"
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.coverage.run]
