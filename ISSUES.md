@@ -5,6 +5,53 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] Local smoke: unify frontend API key with BACKEND_API_KEY
+
+**Found:** Streamlit `api_client` preferred `TKP_API_KEY` from the process env and did
+not load repo `.env`, so a working `BACKEND_API_KEY` in `.env` still produced 401s
+unless a second env var was exported in the terminal.
+
+**Cause:** Split naming (`TKP_API_KEY` vs `BACKEND_API_KEY`) plus no `load_dotenv` in
+the frontend client.
+
+**Fix:** Frontend loads repo-root `.env` and uses `BACKEND_API_KEY` as the canonical
+auth secret (same as FastAPI). `.env.example` updated accordingly.
+**Status:** Fixed (this commit)
+
+---
+
+## [2026-08-02] Local smoke: Gemini free-tier 429 on Stage 2 (classification)
+
+**Found:** After a successful upload (`200`) and Stage 1 (`document_intelligence`
+completed via PyMuPDF), Stage 2 (`educational_classification`) called Gemini
+`gemini-2.0-flash-lite` and failed with `429 RESOURCE_EXHAUSTED` (free-tier
+generate_content quotas reported as limit `0` for that model). Job marked failed;
+not an auth/upload bug.
+
+**Cause:** Google AI Studio free-tier quota exhausted / unavailable for the configured
+Flash-Lite model at smoke-test time.
+
+**Fix:** None in code for this session. Retry later or set `GROQ_API_KEY` for
+eligible stages; consider switching classification model if Flash-Lite stays at
+limit 0. Monitor via AI Studio rate-limit dashboard.
+**Status:** Monitoring
+
+---
+
+## [2026-08-02] Deployment to-do: replace placeholder BACKEND_API_KEY before HF Spaces
+
+**Found:** Local `.env` uses `BACKEND_API_KEY=local-dev-api-key-change-in-prod`
+(placeholder / shared-dev secret).
+
+**Cause:** Convenience default for local bring-up; acceptable only on localhost.
+
+**Fix:** Before Hugging Face Spaces / any public deploy, generate a long random
+secret and set it as a platform secret (and match Streamlit Cloud if used). Do not
+commit the real value. `.env` itself stays gitignored.
+**Status:** Deferred (deployment to-do)
+
+---
+
 ## [2026-08-02] pip-audit CVE reachability audit (langchain / langgraph)
 
 **Found:** `uv run pip-audit` reported multiple CVEs including CVE-2026-34070
