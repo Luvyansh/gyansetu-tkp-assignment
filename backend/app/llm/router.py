@@ -71,6 +71,9 @@ class LLMRouter:
     def model_for_stage(self, stage_name: str) -> str:
         return STAGE_MODELS.get(stage_name, DEFAULT_FLASH)
 
+    def _groq_fallback_available(self, stage_name: str) -> bool:
+        return self.groq is not None and stage_name in GROQ_ELIGIBLE
+
     async def generate(
         self,
         *,
@@ -100,15 +103,24 @@ class LLMRouter:
                 )
 
         try:
-            if prefer_groq and self.groq is not None and stage_name in GROQ_ELIGIBLE:
+            if prefer_groq and self._groq_fallback_available(stage_name):
                 response = await self._call_groq(
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
                     response_model=response_model,
                     temperature=temperature,
                 )
+            elif self._groq_fallback_available(stage_name):
+                # Fail fast into Groq on 429 — do not burn retry budget on Gemini.
+                response = await self._call_gemini_once(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    response_model=response_model,
+                    temperature=temperature,
+                    model=model,
+                )
             else:
-                response = await self._call_gemini(
+                response = await self._call_gemini_with_retries(
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
                     response_model=response_model,
@@ -116,7 +128,7 @@ class LLMRouter:
                     model=model,
                 )
         except Exception as exc:
-            if self._is_rate_limit(exc) and self.groq is not None and stage_name in GROQ_ELIGIBLE:
+            if self._is_rate_limit(exc) and self._groq_fallback_available(stage_name):
                 logger.warning("gemini_rate_limited_falling_back_groq", stage=stage_name)
                 response = await self._call_groq(
                     system_prompt=system_prompt,
@@ -163,13 +175,7 @@ class LLMRouter:
             model=model,
         )
 
-    @retry(
-        retry=retry_if_exception_type(RateLimitError),
-        wait=wait_exponential(multiplier=2, min=5, max=60),
-        stop=stop_after_attempt(6),
-        reraise=True,
-    )
-    async def _call_gemini(
+    async def _call_gemini_once(
         self,
         *,
         system_prompt: str,
@@ -190,6 +196,47 @@ class LLMRouter:
             if self._is_rate_limit(exc):
                 raise RateLimitError(str(exc)) from exc
             raise
+
+    @retry(
+        retry=retry_if_exception_type(RateLimitError),
+        wait=wait_exponential(multiplier=2, min=5, max=60),
+        stop=stop_after_attempt(6),
+        reraise=True,
+    )
+    async def _call_gemini_with_retries(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        response_model: type[T],
+        temperature: float,
+        model: str,
+    ) -> LLMResponse:
+        return await self._call_gemini_once(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            response_model=response_model,
+            temperature=temperature,
+            model=model,
+        )
+
+    # Back-compat alias used by older tests / callers.
+    async def _call_gemini(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        response_model: type[T],
+        temperature: float,
+        model: str,
+    ) -> LLMResponse:
+        return await self._call_gemini_with_retries(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            response_model=response_model,
+            temperature=temperature,
+            model=model,
+        )
 
     async def _call_groq(
         self,

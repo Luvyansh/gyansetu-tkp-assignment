@@ -41,7 +41,7 @@ def _feedback_from_checks(*checks: ValidationCheck) -> str:
     parts: list[str] = []
     for check in checks:
         if check.status == CheckStatus.FAIL:
-            target = f" (retry → {check.retry_target})" if check.retry_target else ""
+            target = f" (retry -> {check.retry_target})" if check.retry_target else ""
             parts.append(f"[{check.name}] FAIL{target}: {check.details}")
         elif check.status == CheckStatus.WARN:
             parts.append(f"[{check.name}] WARN: {check.details}")
@@ -54,8 +54,7 @@ async def run(state: dict[str, Any]) -> dict[str, Any]:
     consistency_check = check_consistency(state)
 
     overall_passed = all(
-        c.status != CheckStatus.FAIL
-        for c in (schema_check, groundedness_check, consistency_check)
+        c.status != CheckStatus.FAIL for c in (schema_check, groundedness_check, consistency_check)
     )
 
     report = ValidationReport(
