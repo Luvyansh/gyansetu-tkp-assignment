@@ -98,7 +98,3 @@ without that document. Application controls: API key auth, CORS allowlist, uploa
 validation, rate limits, secret redaction, and `bandit` on `backend/app`.
 
 Engineering issue log: **[ISSUES.md](ISSUES.md)**.
-
-## Deployment
-
-See `deployment.md` (not committed). Filled in during the deployment phase.
