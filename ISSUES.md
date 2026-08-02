@@ -5,6 +5,53 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] Wrong Gemini model IDs → free-tier limit:0 (not quota exhaustion)
+
+**Found:** Stage 2 (`educational_classification`) failed with
+`429 RESOURCE_EXHAUSTED` against `gemini-2.0-flash-lite`. Full SDK body showed
+free-tier quotas with **`limit: 0`** for that model id — not a nonzero daily
+allowance that had been consumed:
+
+- metric `generate_content_free_tier_input_token_count` /
+  quotaId `GenerateContentInputTokensPerModelPerMinute-FreeTier`
+  → model `gemini-2.0-flash-lite`, limit 0
+- metric `generate_content_free_tier_requests` /
+  quotaIds `GenerateRequestsPerMinutePerProjectPerModel-FreeTier` and
+  `GenerateRequestsPerDayPerProjectPerModel-FreeTier`
+  → model `gemini-2.0-flash-lite`, limit 0
+
+`client.models.list()` still lists `models/gemini-2.0-flash(-lite)`, but live
+`generate_content` probes showed:
+
+| Model | Result |
+| --- | --- |
+| `gemini-2.0-flash-lite` / `gemini-2.0-flash` | 429, free-tier **limit: 0** (retired 2026-06-01) |
+| `gemini-2.5-flash-lite` / `gemini-2.5-flash` | 404 "no longer available to **new users**" |
+| `gemini-3.5-flash-lite` / `gemini-3.5-flash` / `gemini-3.1-flash-lite` | success |
+| `text-embedding-004` | 404 not found for this key |
+| `gemini-embedding-001` | success (request `output_dimensionality=768`) |
+
+**Cause:** Hardcoded retired Gemini 2.0 model strings in
+`backend/app/llm/gemini_client.py`. Google documents retirement of
+`gemini-2.0-flash` / `gemini-2.0-flash-lite` on 2026-06-01; free tier exposes
+that as quota limit 0 rather than a clean "model retired" error. Prior ISSUES
+entry incorrectly filed this as ordinary free-tier exhaustion.
+
+**Fix:** Point defaults at current models available to this API key:
+`gemini-3.5-flash-lite`, `gemini-3.5-flash`, and `gemini-embedding-001`
+(with `output_dimensionality=768` for the pgvector column).
+
+**Smoke re-check (`stem_sample.pdf`):** Stage 2 completed on
+`gemini-3.5-flash-lite` (Physics / Class 9 / Laws of Motion). Stage 3
+extracted 4 concepts on `gemini-3.5-flash` (Newton's 1st/2nd/3rd + Photosynthesis
+from the golden sample). Job later failed in `parallel_generation` with a
+**different** 429: genuine free-tier RPM on `gemini-3.5-flash`
+(`GenerateRequestsPerMinutePerProjectPerModel-FreeTier`, **limit: 5**,
+`quotaValue: 5`) — nonzero limit, real exhaustion, not the limit:0 bug.
+**Status:** Fixed (this commit)
+
+---
+
 ## [2026-08-02] Local smoke: unify frontend API key with BACKEND_API_KEY
 
 **Found:** Streamlit `api_client` preferred `TKP_API_KEY` from the process env and did
@@ -20,7 +67,7 @@ auth secret (same as FastAPI). `.env.example` updated accordingly.
 
 ---
 
-## [2026-08-02] Local smoke: Gemini free-tier 429 on Stage 2 (classification)
+## [2026-08-02] Local smoke: Gemini free-tier 429 on Stage 2 (classification) — SUPERSEDED
 
 **Found:** After a successful upload (`200`) and Stage 1 (`document_intelligence`
 completed via PyMuPDF), Stage 2 (`educational_classification`) called Gemini
@@ -28,13 +75,13 @@ completed via PyMuPDF), Stage 2 (`educational_classification`) called Gemini
 generate_content quotas reported as limit `0` for that model). Job marked failed;
 not an auth/upload bug.
 
-**Cause:** Google AI Studio free-tier quota exhausted / unavailable for the configured
-Flash-Lite model at smoke-test time.
+**Cause (initial, incorrect):** Assumed Google AI Studio free-tier quota exhausted
+for Flash-Lite at smoke-test time.
 
-**Fix:** None in code for this session. Retry later or set `GROQ_API_KEY` for
-eligible stages; consider switching classification model if Flash-Lite stays at
-limit 0. Monitor via AI Studio rate-limit dashboard.
-**Status:** Monitoring
+**Superseded by:** Correct diagnosis above — retired/unavailable model id
+(`limit: 0`), not genuine usage exhaustion. Do not treat this entry as the live
+root cause.
+**Status:** Superseded
 
 ---
 
