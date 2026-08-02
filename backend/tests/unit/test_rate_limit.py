@@ -30,6 +30,22 @@ async def test_lite_allows_higher_concurrency() -> None:
     limiter.release(model)
 
 
+def test_embed_model_uses_higher_rpm_budget() -> None:
+    limiter = ModelRateLimiter()
+    assert limiter._max_per_minute("gemini-embedding-001") == 80
+    assert limiter._concurrency("gemini-embedding-001") == 2
+    assert limiter._max_per_minute("gemini-3.5-flash") == 4
+
+
+@pytest.mark.asyncio
+async def test_embed_weight_consumes_multiple_rpm_slots() -> None:
+    limiter = ModelRateLimiter()
+    model = "gemini-embedding-weight-test"
+    await limiter.acquire(model, weight=10)
+    assert len(limiter._windows[model]) == 10
+    limiter.release(model)
+
+
 def test_classroom_and_assessment_use_flash_lite() -> None:
     from backend.app.llm.gemini_client import DEFAULT_FLASH_LITE
     from backend.app.llm.router import STAGE_MODELS

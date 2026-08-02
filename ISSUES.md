@@ -5,6 +5,44 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] EmbedContent 429 — per-chunk loop outside RPM limiter
+
+**Found:** Live run hit `EmbedContentRequestsPerMinutePerUserPerProjectPerModel-FreeTier`
+(limit **100**/min) on `gemini-embedding-001` / displayed as `gemini-embedding-1.0`.
+This is a real nonzero quota — the app fired >100 embed requests in a minute.
+
+**Cause:** `GeminiClient.embed` looped `embed_content` **once per text** with **no**
+`rate_limited(...)` wrapper. Stage 3 (`n3_knowledge_extraction`) correctly batches
+chunk texts into groups of 32 and calls `router.embed(batch)`, but the client then
+expanded each batch into 32 individual API calls. The RPM limiter added for
+generate fan-out (`a91e79f`) only wrapped `generate_content`, so embeddings were
+unthrottled. Stage 9 groundedness also embeds `[query, *chunks]` and inherited the
+same one-call-per-text behaviour.
+
+**Quota nuance (verified live):** free-tier embed RPM counts **per text**, not per
+HTTP request — a single batched `embed_content` with 100 strings still consumes
+100 of the 100/min budget. Batching helps latency/overhead but must be paired with
+**weighted** RPM accounting (`weight=len(batch)`).
+
+**Stage attribution:** Embedding belongs to **Stage 3 (knowledge extraction)**, not
+Document Intelligence. The UI blamed Stage 1 because (a) the job row stayed on the
+pre-run `document_intelligence` placeholder until the pipeline finished, and
+(b) the progress stepper mapped unknown/error stages to index 0 via
+`max(active_idx, 0)`.
+
+**Fix:** Batch `contents=[...]` in a single `embed_content` request (SDK-supported);
+wrap each batch in `rate_limited(DEFAULT_EMBED, weight=len(batch))` with an
+embed-aware RPM budget (80 texts/min headroom under the 100 free-tier cap) and
+max batch 40. Stream mid-pipeline stage updates via
+`astream(..., stream_mode="values")` + `on_stage` so failures keep the real stage;
+stepper no longer pins unknown failures onto Document Intelligence.
+**Status:** Fixed / verified — live embed of 120 texts completed without 429
+under weighted throttle (~62s). E2E reached `knowledge_extraction` at 35%
+(embeds done); full pipeline then failed on unrelated Flash **daily** generate
+quota (limit 20), not EmbedContent RPM.
+
+---
+
 ## [2026-08-02] Groq fallback exercised live (routing + Stage 9 + latency)
 
 **Found:** With a real `GROQ_API_KEY`, Gemini→Groq overflow was not truly

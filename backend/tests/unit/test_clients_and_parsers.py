@@ -107,6 +107,29 @@ async def test_gemini_embed_pad_and_empty() -> None:
     assert len(vectors) == 1
     assert len(vectors[0]) == 768
     assert vectors[0][0] == pytest.approx(0.1)
+    # Single text still sent as a one-element batch (not a per-text loop).
+    call_kwargs = aio_models.embed_content.await_args.kwargs
+    assert call_kwargs["contents"] == ["hi"]
+    assert aio_models.embed_content.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_gemini_embed_batches_multiple_texts() -> None:
+    client = GeminiClient.__new__(GeminiClient)
+    emb_a = MagicMock(values=[0.1])
+    emb_b = MagicMock(values=[0.2])
+    emb_c = MagicMock(values=[0.3])
+    mock_resp = MagicMock()
+    mock_resp.embeddings = [emb_a, emb_b, emb_c]
+    aio_models = MagicMock()
+    aio_models.embed_content = AsyncMock(return_value=mock_resp)
+    client._client = MagicMock()
+    client._client.aio.models = aio_models
+
+    vectors = await client.embed(["a", "b", "c"])
+    assert len(vectors) == 3
+    assert aio_models.embed_content.await_count == 1
+    assert aio_models.embed_content.await_args.kwargs["contents"] == ["a", "b", "c"]
 
 
 @pytest.mark.asyncio
