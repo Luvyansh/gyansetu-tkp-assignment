@@ -218,10 +218,19 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
 
         state = await build_initial_state(job, document)
 
+        async def _on_stage(stage: str, progress_pct: float) -> None:
+            await _update_job(
+                session,
+                job,
+                status="running",
+                current_stage=stage,
+                progress_pct=progress_pct,
+            )
+
         try:
             from backend.app.graph.build_graph import run_pipeline
 
-            final_state = await run_pipeline(state)
+            final_state = await run_pipeline(state, on_stage=_on_stage)
             if not isinstance(final_state, dict):
                 if hasattr(final_state, "model_dump"):
                     final_state = final_state.model_dump()
@@ -252,12 +261,14 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                 job_id=str(job_id),
                 error=str(exc),
                 traceback=traceback.format_exc(),
+                stage=job.current_stage,
             )
+            # Preserve last known stage (e.g. knowledge_extraction) so the UI
+            # does not pin the failure on the pre-run document_intelligence label.
             await _update_job(
                 session,
                 job,
                 status="failed",
-                current_stage="error",
                 error=str(exc),
             )
         finally:
