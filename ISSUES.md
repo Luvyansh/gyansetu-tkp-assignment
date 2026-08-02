@@ -5,6 +5,36 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] Validation-retry exhaust misattributed to Document Intelligence
+
+**Found:** Job `99dcc2bc-694c-4b8e-9ed9-d058fe5bb291` correctly failed groundedness
+(Period 3 ungrounded weathering / agents of gradation), retried to
+`classroom_content` per `retry_target`, then after retries exhausted the UI
+pinned the failure onto **Document Intelligence (stage 1)**.
+
+**Stuck period (not a hang):** After retry #1 (~20:11:43Z), classroom content
+mostly cache-hit; the apparent 4–5 min stall (~20:12:02 → 20:16:56Z) was
+`gemini_rpm_throttle` waits while Stage 9 re-embedded for groundedness
+(`wait_s` up to ~55s, weight 36–40 against embed RPM 80). Then retry #2 failed
+and `tkp_pipeline_failed_validation` fired — clean terminal failure, not a
+silent exception or infinite loop. `MAX_VALIDATION_RETRIES=2` is enforced
+(`retry_count` 1 → retry, 2 → fail).
+
+**Cause:** `d3b8e3f` fixed the *exception* path (preserve `job.current_stage`,
+stepper no longer `max(idx, 0)`). The *validation-exhaust* path still set
+`current_stage: "failed"` in `fail_job`. That sentinel is not a pipeline stage;
+the stepper cannot map it and historically coerced unknown → index 0.
+
+**Fix:** `fail_job` / `_terminal_failure_stage` report the real last-active
+stage (`validation`, or first `retry_target` if prior stage was a sentinel).
+`pipeline_runner` refuses to persist `"failed"`/`"error"` as the stage.
+Stepper treats failed/error/unknown as unmapped (no Document Intelligence pin).
+Mocked integration test covers validation → groundedness fail → retries
+exhaust → stage=`validation`.
+**Status:** Fixed this commit
+
+---
+
 ## [2026-08-02] EmbedContent 429 — per-chunk loop outside RPM limiter
 
 **Found:** Live run hit `EmbedContentRequestsPerMinutePerUserPerProjectPerModel-FreeTier`

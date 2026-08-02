@@ -201,6 +201,57 @@ async def test_run_job_pipeline_document_missing(mock_session_factory: MagicMock
 
 
 @pytest.mark.asyncio
+async def test_run_job_pipeline_validation_exhaust_preserves_stage(
+    mock_session_factory: MagicMock, tmp_path: Path
+) -> None:
+    """Terminal validation failure must persist the real stage, not 'failed'."""
+    job = MagicMock()
+    job.id = uuid4()
+    job.document_id = uuid4()
+    job.status = "pending"
+    job.current_stage = "pending"
+    job.progress_pct = 0.0
+    job.error = None
+
+    document = MagicMock()
+    document.id = job.document_id
+    document.original_filename = "x.pdf"
+    document.doc_type_hint = None
+    document.extracted_structure = {}
+
+    job_result = MagicMock()
+    job_result.scalar_one_or_none.return_value = job
+    doc_result = MagicMock()
+    doc_result.scalar_one_or_none.return_value = document
+
+    session = mock_session_factory.return_value.__aenter__.return_value
+    session.execute = AsyncMock(side_effect=[job_result, doc_result])
+    session.commit = AsyncMock()
+
+    final_state = {
+        "current_stage": "validation",
+        "progress_pct": 90.0,
+        "error": "[groundedness_check] FAIL (retry -> classroom_content): avg=0.77",
+    }
+
+    with (
+        patch("backend.app.api.pipeline_runner.AsyncSessionLocal", mock_session_factory),
+        patch("backend.app.api.pipeline_runner.publish_progress", new_callable=AsyncMock),
+        patch(
+            "backend.app.graph.build_graph.run_pipeline",
+            new_callable=AsyncMock,
+            return_value=final_state,
+        ),
+        patch("backend.app.api.pipeline_runner.close_progress_queue"),
+    ):
+        await run_job_pipeline(job.id)
+
+    assert job.status == "failed"
+    assert job.current_stage == "validation"
+    assert "groundedness" in job.error.lower()
+
+
+@pytest.mark.asyncio
 async def test_run_job_pipeline_graph_error(
     mock_session_factory: MagicMock, tmp_path: Path
 ) -> None:
