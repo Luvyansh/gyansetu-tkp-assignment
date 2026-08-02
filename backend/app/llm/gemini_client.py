@@ -11,6 +11,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from backend.app.llm.base import LLMResponse
+from backend.app.llm.rate_limit import rate_limited
 from backend.app.logging_config import get_logger
 
 T = TypeVar("T", bound=BaseModel)
@@ -46,11 +47,12 @@ class GeminiClient:
             response_mime_type="application/json",
             response_schema=schema,
         )
-        response = await self._client.aio.models.generate_content(
-            model=model_name,
-            contents=user_prompt,
-            config=config,
-        )
+        async with rate_limited(model_name):
+            response = await self._client.aio.models.generate_content(
+                model=model_name,
+                contents=user_prompt,
+                config=config,
+            )
         latency_ms = int((time.perf_counter() - started) * 1000)
         raw = response.text or "{}"
         try:
@@ -125,11 +127,12 @@ class GeminiClient:
             response_mime_type="application/json",
             response_schema=response_model.model_json_schema(),
         )
-        response = await self._client.aio.models.generate_content(
-            model=model_name,
-            contents=cast(Any, parts),
-            config=config,
-        )
+        async with rate_limited(model_name):
+            response = await self._client.aio.models.generate_content(
+                model=model_name,
+                contents=cast(Any, parts),
+                config=config,
+            )
         latency_ms = int((time.perf_counter() - started) * 1000)
         raw = response.text or "{}"
         parsed = json.loads(raw)
