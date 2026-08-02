@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.app.logging_config import get_logger
 from backend.app.schemas.assessment import AssessmentBundle
 from backend.app.schemas.lesson import ClassroomContentBundle, TeachingPlan
 from backend.app.schemas.validation import CheckStatus, ValidationCheck
+
+logger = get_logger(__name__)
 
 
 def _coerce_plan(raw: Any) -> TeachingPlan | None:
@@ -114,7 +117,11 @@ def check_consistency(state: dict[str, Any]) -> ValidationCheck:
                     if concept and concept in blob:
                         referenced.add(concept)
         except Exception:
-            pass
+            logger.warning(
+                "consistency_activities_scan_failed",
+                exc_info=True,
+                planned_concept_count=len(planned_concepts),
+            )
 
     if planned_concepts:
         uncovered = planned_concepts - referenced
