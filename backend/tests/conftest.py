@@ -145,7 +145,7 @@ def mock_llm_router(canned_payloads: dict[str, dict[str, Any]]) -> AsyncMock:
             cached=False,
         )
 
-    async def _embed(texts: list[str]) -> list[list[float]]:
+    async def _embed(texts: list[str], **_kwargs: Any) -> list[list[float]]:
         # Deterministic pseudo-embeddings: bag-of-char hash into 8 dims
         vectors: list[list[float]] = []
         for text in texts:

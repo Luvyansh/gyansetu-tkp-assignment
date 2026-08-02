@@ -26,6 +26,7 @@ def _initial_state(file_path: str) -> dict[str, Any]:
         "classification": None,
         "knowledge": None,
         "knowledge_chunk_texts": [],
+        "knowledge_chunk_embeddings": [],
         "teaching_plan": None,
         "classroom_content": None,
         "activities": None,
@@ -54,7 +55,7 @@ async def test_run_pipeline_mocked_to_publish(
 
     structure = make_document_structure()
 
-    async def high_sim(texts: list[str]) -> list[list[float]]:
+    async def high_sim(texts: list[str], **_kwargs: object) -> list[list[float]]:
         return [[1.0, 0.0, 0.0] for _ in texts]
 
     patch_llm_router.embed = AsyncMock(side_effect=high_sim)
