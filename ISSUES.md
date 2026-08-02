@@ -5,6 +5,25 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] Parallel generation 429 on gemini-3.5-flash (RPM limit 5)
+
+**Found:** After model-ID fix, Stages 1–4 succeeded but `parallel_generation`
+failed with genuine free-tier RPM exhaustion on `gemini-3.5-flash`
+(`GenerateRequestsPerMinutePerProjectPerModel-FreeTier`, **limit: 5**,
+`quotaValue: 5`). Stage 5 fan-out used unthrottled `asyncio.gather` over all
+periods while Stages 5–8 also ran concurrently — no semaphore/rate gate.
+
+**Cause:** Build plan called for concurrency control on Stage 5–7 fan-out; it was
+never wired. `GROQ_API_KEY` is empty locally, so Groq overflow fallback cannot
+absorb Flash RPM pressure.
+
+**Fix:** Per-model `ModelRateLimiter` (semaphore + sliding-window RPM) wraps
+Gemini `generate_content`; classroom/assessment fan-out routed to
+`gemini-3.5-flash-lite` (separate quota); RateLimitError retries lengthened.
+**Status:** Fixed (this commit)
+
+---
+
 ## [2026-08-02] Stage 3 extracted off-topic grounded concepts (topic-scope gap)
 
 **Found:** Knowledge extraction returned "Photosynthesis" alongside Newton's Laws
