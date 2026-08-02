@@ -5,6 +5,36 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-02] Groq fallback exercised live (routing + Stage 9 + latency)
+
+**Found:** With a real `GROQ_API_KEY`, Gemini→Groq overflow was not truly
+fail-fast: eligible stages still entered `_call_gemini`'s tenacity loop
+(up to 6 RateLimitError retries / ~minutes) before the outer handler could
+call Groq. Also, Stage 9 logging used Unicode `→`, which crashed on Windows
+cp1252 when validation failed.
+
+**Live exercise (forced Gemini 429 → real Groq `llama-3.3-70b-versatile`):**
+- Classification fallback succeeded (Physics / Newton's Laws, Groq
+  `latency_ms=876`).
+- Same prompt latency: **Gemini `gemini-3.5-flash` 2785 ms** vs **Groq 419 ms**
+  (Δ ≈ 2366 ms; Groq ~6.6× faster on this call).
+- Stage 9 on Groq-produced classroom/activity/assessment/gap bundles:
+  schema **pass**, consistency **pass**. Groundedness **failed** when
+  grounding chunks were the short factory excerpt (Groq elaborated inertia /
+  full first-law wording beyond the chunk); **passed** with fuller
+  Laws-of-Motion grounding (`avg≈0.76`, judge_passed=True, overall_passed).
+
+**Cause:** Retry-before-fallback ordering defeated the "fast overflow" design;
+Groq is more expansive than Gemini on thin grounding, so Stage 9 still matters.
+
+**Fix:** Eligible+Groq-available stages call Gemini once then fall back
+immediately; non-eligible stages keep retries. Stage 9 feedback uses ASCII
+`->`. Live tests under `backend/tests/integration/test_groq_fallback_live.py`
+(`-m live_llm`).
+**Status:** Fixed / verified (this commit)
+
+---
+
 ## [2026-08-02] Parallel generation 429 on gemini-3.5-flash (RPM limit 5)
 
 **Found:** After model-ID fix, Stages 1–4 succeeded but `parallel_generation`
