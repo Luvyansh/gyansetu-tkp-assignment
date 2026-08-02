@@ -1,0 +1,15 @@
+{
+  "document": "humanities_sample.pdf",
+  "domain": "humanities",
+  "expected_concepts": [
+    "French Revolution",
+    "Bastille",
+    "Estates-General",
+    "Declaration of the Rights of Man",
+    "Ancien Regime",
+    "Enlightenment"
+  ],
+  "expected_subject_keywords": ["History", "Revolution"],
+  "min_concepts": 3,
+  "notes": "Hand-labeled golden concepts for French Revolution excerpt"
+}
