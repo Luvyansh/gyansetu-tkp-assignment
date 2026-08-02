@@ -16,9 +16,12 @@ from backend.app.logging_config import get_logger
 T = TypeVar("T", bound=BaseModel)
 logger = get_logger(__name__)
 
-DEFAULT_FLASH_LITE = "gemini-2.0-flash-lite"
-DEFAULT_FLASH = "gemini-2.0-flash"
-DEFAULT_EMBED = "text-embedding-004"
+# Gemini 2.0 Flash / Flash-Lite retired 2026-06-01 (free-tier quota limit:0).
+# Gemini 2.5 Flash / Flash-Lite return 404 for new API keys ("no longer available
+# to new users"). Use current stable 3.x IDs — see ISSUES.md.
+DEFAULT_FLASH_LITE = "gemini-3.5-flash-lite"
+DEFAULT_FLASH = "gemini-3.5-flash"
+DEFAULT_EMBED = "gemini-embedding-001"
 
 
 class GeminiClient:
@@ -75,10 +78,12 @@ class GeminiClient:
         if not texts:
             return []
         result: list[list[float]] = []
+        embed_config = types.EmbedContentConfig(output_dimensionality=768)
         for text in texts:
             response = await self._client.aio.models.embed_content(
                 model=DEFAULT_EMBED,
                 contents=text,
+                config=embed_config,
             )
             # google-genai returns embeddings on the response
             embedding = getattr(response, "embeddings", None) or getattr(

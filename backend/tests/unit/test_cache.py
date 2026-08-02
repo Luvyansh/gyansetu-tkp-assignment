@@ -6,8 +6,8 @@ from backend.app.llm.cache import cache_key
 
 
 def test_cache_key_stable_for_same_inputs() -> None:
-    a = cache_key("teaching_planner", {"x": 1, "y": [2, 3]}, "gemini-2.0-flash")
-    b = cache_key("teaching_planner", {"y": [2, 3], "x": 1}, "gemini-2.0-flash")
+    a = cache_key("teaching_planner", {"x": 1, "y": [2, 3]}, "gemini-3.5-flash")
+    b = cache_key("teaching_planner", {"y": [2, 3], "x": 1}, "gemini-3.5-flash")
     assert a == b
     assert len(a) == 64  # sha256 hex
 
