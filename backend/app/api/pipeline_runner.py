@@ -15,6 +15,7 @@ from backend.app.api.deps import close_progress_queue, publish_progress
 from backend.app.config import get_settings
 from backend.app.db.models import Document, Job, StageOutput, TKPPackage
 from backend.app.db.session import AsyncSessionLocal
+from backend.app.llm.errors import humanize_provider_error
 from backend.app.logging_config import get_logger
 from backend.app.pdf_export.render import render_all_pdfs
 from backend.app.schemas.tkp import TeacherKnowledgePackage
@@ -77,6 +78,7 @@ async def build_initial_state(job: Job, document: Document) -> dict[str, Any]:
         "classification": None,
         "knowledge": None,
         "knowledge_chunk_texts": [],
+        "knowledge_chunk_embeddings": [],
         "teaching_plan": None,
         "classroom_content": None,
         "activities": None,
@@ -263,10 +265,11 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                     progress_pct=float(final_state.get("progress_pct") or 100.0),
                 )
         except Exception as exc:
+            friendly = humanize_provider_error(exc)
             logger.error(
                 "pipeline_failed",
                 job_id=str(job_id),
-                error=str(exc),
+                error=friendly,
                 traceback=traceback.format_exc(),
                 stage=job.current_stage,
             )
@@ -276,7 +279,7 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                 session,
                 job,
                 status="failed",
-                error=str(exc),
+                error=friendly,
             )
         finally:
             # Clean temp upload if present

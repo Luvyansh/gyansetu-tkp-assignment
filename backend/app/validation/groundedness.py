@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from backend.app.config import get_settings
-from backend.app.db.vector_store import cosine_similarity
+from backend.app.db.session import AsyncSessionLocal
+from backend.app.db.vector_store import cosine_similarity, fetch_chunks_for_document
 from backend.app.llm.router import get_llm_router
 from backend.app.logging_config import get_logger
 from backend.app.schemas.assessment import AssessmentBundle
@@ -76,11 +78,58 @@ def _coerce_assessments(raw: Any) -> AssessmentBundle | None:
     return AssessmentBundle.model_validate(raw)
 
 
-async def score_text_against_chunks(text: str, chunks: list[str]) -> float:
+def _as_uuid(value: Any) -> UUID | None:
+    if value is None:
+        return None
+    if isinstance(value, UUID):
+        return value
+    try:
+        return UUID(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+async def _resolve_chunk_embeddings(
+    state: dict[str, Any], chunks: list[str]
+) -> list[list[float]] | None:
+    """Reuse Stage 3 embeddings from state or ``knowledge_chunks`` — never re-embed chunks."""
+    cached = state.get("knowledge_chunk_embeddings")
+    if (
+        isinstance(cached, list)
+        and len(cached) == len(chunks)
+        and chunks
+        and all(isinstance(v, list) and v for v in cached)
+    ):
+        return [[float(x) for x in v] for v in cached]
+
+    document_id = _as_uuid(state.get("document_id"))
+    if document_id is None or not chunks:
+        return None
+
+    async with AsyncSessionLocal() as session:
+        rows = await fetch_chunks_for_document(session, document_id)
+
+    by_text: dict[str, list[float]] = {}
+    for row in rows:
+        if row.embedding is None:
+            continue
+        by_text[row.chunk_text] = [float(x) for x in row.embedding]
+
+    if all(text in by_text for text in chunks):
+        return [by_text[text] for text in chunks]
+    return None
+
+
+async def score_text_against_chunks(
+    text: str,
+    chunks: list[str],
+    *,
+    chunk_embeddings: list[list[float]] | None = None,
+) -> float:
     """Average max cosine similarity of ``text`` embedding vs each chunk embedding.
 
-    Returns the mean of per-chunk best-match scores for the query embedding
-    against all chunk embeddings (max similarity across chunks).
+    When ``chunk_embeddings`` is provided (preferred — from Stage 3 / DB), only the
+    query text is embedded. Otherwise falls back to embedding query + chunks once.
     """
     cleaned = (text or "").strip()
     usable_chunks = [c.strip() for c in chunks if c and c.strip()]
@@ -88,13 +137,19 @@ async def score_text_against_chunks(text: str, chunks: list[str]) -> float:
         return 0.0
 
     router = get_llm_router()
-    # Embed query + chunks in one batch when possible
-    vectors = await router.embed([cleaned, *usable_chunks])
-    if len(vectors) < 2:
-        return 0.0
+    if chunk_embeddings is not None and len(chunk_embeddings) == len(usable_chunks):
+        query_vecs = await router.embed([cleaned], stage="groundedness_query")
+        if not query_vecs:
+            return 0.0
+        query_vec = query_vecs[0]
+        chunk_vecs = chunk_embeddings
+    else:
+        vectors = await router.embed([cleaned, *usable_chunks], stage="groundedness_fallback")
+        if len(vectors) < 2:
+            return 0.0
+        query_vec = vectors[0]
+        chunk_vecs = vectors[1:]
 
-    query_vec = vectors[0]
-    chunk_vecs = vectors[1:]
     sims = [cosine_similarity(query_vec, cv) for cv in chunk_vecs]
     return float(max(sims)) if sims else 0.0
 
@@ -136,6 +191,9 @@ async def check_groundedness(state: dict[str, Any]) -> ValidationCheck:
     ``settings.faithfulness_threshold``, runs an LLM-as-judge second pass.
     Per-period scores are written into ``state['grounding_scores']`` and
     summarized in ``details``.
+
+    Chunk vectors are loaded once from Stage 3 state / pgvector and reused —
+    generated query texts are the only new embeds.
     """
     settings = get_settings()
     chunks: list[str] = list(state.get("knowledge_chunk_texts") or [])
@@ -177,11 +235,43 @@ async def check_groundedness(state: dict[str, Any]) -> ValidationCheck:
         state["grounding_scores"] = grounding_scores
         return check
 
-    for label, text in texts_to_score:
-        if not text.strip():
-            grounding_scores[label] = 0.0
-            continue
-        grounding_scores[label] = await score_text_against_chunks(text, chunks)
+    chunk_embeddings = await _resolve_chunk_embeddings(state, chunks)
+    router = get_llm_router()
+
+    # Prefer one query-batch embed + reused chunk vectors (no chunk re-embed).
+    nonempty = [(label, text) for label, text in texts_to_score if text.strip()]
+    empty_labels = [label for label, text in texts_to_score if not text.strip()]
+    for label in empty_labels:
+        grounding_scores[label] = 0.0
+
+    if chunk_embeddings is not None and len(chunk_embeddings) == len(chunks) and nonempty:
+        query_vecs = await router.embed(
+            [text for _, text in nonempty],
+            stage="groundedness_queries",
+        )
+        logger.info(
+            "groundedness_scoring",
+            queries=len(nonempty),
+            chunks=len(chunks),
+            chunk_embeds_reused=len(chunk_embeddings),
+            query_api_embeds=len(query_vecs),
+        )
+        for (label, _text), query_vec in zip(nonempty, query_vecs, strict=True):
+            sims = [cosine_similarity(query_vec, cv) for cv in chunk_embeddings]
+            grounding_scores[label] = float(max(sims)) if sims else 0.0
+    else:
+        logger.warning(
+            "groundedness_chunk_embed_fallback",
+            reason="missing Stage-3/DB embeddings — embedding chunks once for this check",
+            chunks=len(chunks),
+        )
+        # Embed chunks once (not per query), then each query.
+        chunk_vecs = await router.embed(chunks, stage="groundedness_chunk_fallback")
+        state["knowledge_chunk_embeddings"] = chunk_vecs
+        for label, text in nonempty:
+            grounding_scores[label] = await score_text_against_chunks(
+                text, chunks, chunk_embeddings=chunk_vecs
+            )
 
     # Persist onto period models in state when possible
     if classroom is not None:

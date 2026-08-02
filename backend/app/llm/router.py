@@ -15,8 +15,16 @@ from tenacity import (
 
 from backend.app.config import Settings, get_settings
 from backend.app.llm.base import LLMResponse
-from backend.app.llm.cache import cache_key, get_cached, put_cached
+from backend.app.llm.cache import (
+    cache_key,
+    embed_cache_key,
+    get_cached,
+    get_cached_embeddings,
+    put_cached,
+    put_cached_embeddings,
+)
 from backend.app.llm.gemini_client import (
+    DEFAULT_EMBED,
     DEFAULT_FLASH,
     DEFAULT_FLASH_LITE,
     GeminiClient,
@@ -152,8 +160,57 @@ class LLMRouter:
             )
         return response
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
-        return await self.gemini.embed(texts)
+    async def embed(
+        self,
+        texts: list[str],
+        *,
+        session: AsyncSession | None = None,
+        stage: str | None = None,
+    ) -> list[list[float]]:
+        """Embed texts with Postgres content-hash cache (identical strings skip the API)."""
+        if not texts:
+            return []
+
+        from backend.app.db.session import AsyncSessionLocal
+
+        async def _embed_with_cache(db: AsyncSession) -> list[list[float]]:
+            keys = [embed_cache_key(t, DEFAULT_EMBED) for t in texts]
+            cached = await get_cached_embeddings(db, keys)
+            results: list[list[float] | None] = [None] * len(texts)
+            miss_indices: list[int] = []
+            miss_texts: list[str] = []
+            for i, key in enumerate(keys):
+                hit = cached.get(key)
+                if hit is not None:
+                    results[i] = hit
+                else:
+                    miss_indices.append(i)
+                    miss_texts.append(texts[i])
+
+            api_count = 0
+            if miss_texts:
+                fresh = await self.gemini.embed(miss_texts)
+                api_count = len(miss_texts)
+                to_store: list[tuple[str, list[float]]] = []
+                for idx, vector in zip(miss_indices, fresh, strict=True):
+                    results[idx] = vector
+                    to_store.append((keys[idx], vector))
+                await put_cached_embeddings(db, to_store)
+
+            logger.info(
+                "embed_cache_lookup",
+                stage=stage or "unspecified",
+                requested=len(texts),
+                cache_hits=len(texts) - api_count,
+                api_texts=api_count,
+                model=DEFAULT_EMBED,
+            )
+            return [v if v is not None else [0.0] * 768 for v in results]
+
+        if session is not None:
+            return await _embed_with_cache(session)
+        async with AsyncSessionLocal() as db:
+            return await _embed_with_cache(db)
 
     async def multimodal(
         self,

@@ -270,7 +270,7 @@ async def test_enrich_multimodal_mocked(stem_pdf_path: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_check_groundedness_llm_judge_pass(patch_llm_router: AsyncMock) -> None:
-    async def low_sim(texts: list[str]) -> list[list[float]]:
+    async def low_sim(texts: list[str], **_kwargs: object) -> list[list[float]]:
         # Orthogonal-ish vectors → low cosine
         out = []
         for i, _ in enumerate(texts):

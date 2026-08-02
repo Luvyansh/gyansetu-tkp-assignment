@@ -196,3 +196,49 @@ async def test_call_gemini_wraps_rate_limit() -> None:
             temperature=0.1,
             model="m",
         )
+
+
+@pytest.mark.asyncio
+async def test_embed_uses_content_hash_cache() -> None:
+    """Identical texts must not call Gemini when the hash is already cached."""
+    from backend.app.llm.cache import embed_cache_key
+    from backend.app.llm.gemini_client import DEFAULT_EMBED
+
+    gemini = AsyncMock()
+    gemini.embed = AsyncMock(return_value=[[0.5] * 768])
+    router = LLMRouter(settings=_settings(), gemini=gemini, groq=None)
+    session = AsyncMock()
+    key = embed_cache_key("dup", DEFAULT_EMBED)
+
+    with (
+        patch(
+            "backend.app.llm.router.get_cached_embeddings",
+            AsyncMock(return_value={key: [0.9] * 768}),
+        ),
+        patch("backend.app.llm.router.put_cached_embeddings", AsyncMock()) as put,
+    ):
+        vectors = await router.embed(["dup"], session=session, stage="test")
+
+    assert vectors == [[0.9] * 768]
+    gemini.embed.assert_not_called()
+    put.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_embed_caches_api_misses() -> None:
+    gemini = AsyncMock()
+    gemini.embed = AsyncMock(return_value=[[0.2] * 768, [0.3] * 768])
+    router = LLMRouter(settings=_settings(), gemini=gemini, groq=None)
+    session = AsyncMock()
+
+    with (
+        patch("backend.app.llm.router.get_cached_embeddings", AsyncMock(return_value={})),
+        patch("backend.app.llm.router.put_cached_embeddings", AsyncMock()) as put,
+    ):
+        vectors = await router.embed(["a", "b"], session=session, stage="knowledge_extraction")
+
+    assert len(vectors) == 2
+    gemini.embed.assert_awaited_once_with(["a", "b"])
+    put.assert_awaited_once()
+    stored = put.await_args.args[1]
+    assert len(stored) == 2
