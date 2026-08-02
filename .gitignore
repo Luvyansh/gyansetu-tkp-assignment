@@ -1,1 +1,46 @@
-﻿.env
+# Secrets & local env
+.env
+deployment.md
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# IDE / editor
+.cursor/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Eval reports (keep folder via .gitkeep)
+evals/reports/*
+!evals/reports/.gitkeep
+
+# Generated artifacts / uploads (HF Spaces: only /tmp is writable)
+tmp/
+uploads/
+*.pdf.export
+backend/app/pdf_export/out/
+
+# Logs
+*.log
+logs/
