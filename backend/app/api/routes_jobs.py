@@ -189,9 +189,7 @@ async def get_eval_report(
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    outputs = await db.execute(
-        select(StageOutput).where(StageOutput.job_id == job_id)
-    )
+    outputs = await db.execute(select(StageOutput).where(StageOutput.job_id == job_id))
     rows = list(outputs.scalars().all())
 
     grounding_scores: dict[str, float] = {}

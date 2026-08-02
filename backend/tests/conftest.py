@@ -174,13 +174,33 @@ def mock_llm_router(canned_payloads: dict[str, dict[str, Any]]) -> AsyncMock:
 def patch_llm_router(mock_llm_router: AsyncMock) -> Iterator[AsyncMock]:
     with (
         patch("backend.app.llm.router.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n2_educational_classification.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n3_knowledge_extraction.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n4_teaching_planner.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n5_classroom_content.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n6_activity_generation.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n7_assessment_generation.get_llm_router", return_value=mock_llm_router),
-        patch("backend.app.graph.nodes.n8_gap_analysis.get_llm_router", return_value=mock_llm_router),
+        patch(
+            "backend.app.graph.nodes.n2_educational_classification.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n3_knowledge_extraction.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n4_teaching_planner.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n5_classroom_content.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n6_activity_generation.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n7_assessment_generation.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        patch(
+            "backend.app.graph.nodes.n8_gap_analysis.get_llm_router", return_value=mock_llm_router
+        ),
         patch("backend.app.validation.groundedness.get_llm_router", return_value=mock_llm_router),
     ):
         yield mock_llm_router

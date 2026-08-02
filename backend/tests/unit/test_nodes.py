@@ -78,9 +78,7 @@ def session_patches(mock_session_factory: MagicMock):
 
 
 @pytest.mark.asyncio
-async def test_n2_classification(
-    patch_llm_router: AsyncMock, session_patches: MagicMock
-) -> None:
+async def test_n2_classification(patch_llm_router: AsyncMock, session_patches: MagicMock) -> None:
     out = await n2_educational_classification.run(_base_state())
     cls = EducationalClassification.model_validate(out["classification"])
     assert cls.subject == "Physics"
@@ -104,9 +102,7 @@ async def test_n3_knowledge_extraction(
 
 
 @pytest.mark.asyncio
-async def test_n4_teaching_planner(
-    patch_llm_router: AsyncMock, session_patches: MagicMock
-) -> None:
+async def test_n4_teaching_planner(patch_llm_router: AsyncMock, session_patches: MagicMock) -> None:
     out = await n4_teaching_planner.run(_base_state())
     assert out["teaching_plan"]["total_periods"] == 2
     assert len(out["teaching_plan"]["periods"]) == 2
@@ -140,9 +136,7 @@ async def test_n7_assessment_generation(
 
 
 @pytest.mark.asyncio
-async def test_n8_gap_analysis(
-    patch_llm_router: AsyncMock, session_patches: MagicMock
-) -> None:
+async def test_n8_gap_analysis(patch_llm_router: AsyncMock, session_patches: MagicMock) -> None:
     out = await n8_gap_analysis.run(_base_state())
     assert out["gap_analysis"]["gaps"]
 
@@ -189,10 +183,13 @@ async def test_malformed_llm_response_raises(
             cached=False,
         )
     )
-    with patch(
-        "backend.app.graph.nodes.n2_educational_classification.get_llm_router",
-        return_value=mock_llm_router,
-    ), pytest.raises(ValidationError):
+    with (
+        patch(
+            "backend.app.graph.nodes.n2_educational_classification.get_llm_router",
+            return_value=mock_llm_router,
+        ),
+        pytest.raises(ValidationError),
+    ):
         await n2_educational_classification.run(_base_state())
 
 

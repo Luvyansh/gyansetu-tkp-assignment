@@ -167,9 +167,7 @@ async def _persist_pipeline_result(
             tkp_json.setdefault("metadata", {})
             for name, path in pdf_paths.items():
                 tkp_json["metadata"][f"pdf_{name}"] = path
-        existing = await session.execute(
-            select(TKPPackage).where(TKPPackage.job_id == job.id)
-        )
+        existing = await session.execute(select(TKPPackage).where(TKPPackage.job_id == job.id))
         pkg = existing.scalar_one_or_none()
         if pkg is None:
             session.add(TKPPackage(job_id=job.id, tkp_json=tkp_json))
@@ -195,9 +193,7 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
             logger.error("pipeline_job_not_found", job_id=str(job_id))
             return
 
-        doc_result = await session.execute(
-            select(Document).where(Document.id == job.document_id)
-        )
+        doc_result = await session.execute(select(Document).where(Document.id == job.document_id))
         document = doc_result.scalar_one_or_none()
         if document is None:
             await _update_job(
