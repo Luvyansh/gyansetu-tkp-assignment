@@ -32,9 +32,10 @@ STAGE_MODELS: dict[str, str] = {
     "educational_classification": DEFAULT_FLASH_LITE,
     "knowledge_extraction": DEFAULT_FLASH,
     "teaching_planner": DEFAULT_FLASH,
-    "classroom_content": DEFAULT_FLASH,
+    # Per-period fan-out: prefer lite so free-tier Flash RPM (≈5) is not saturated.
+    "classroom_content": DEFAULT_FLASH_LITE,
     "activity_generation": DEFAULT_FLASH_LITE,
-    "assessment_generation": DEFAULT_FLASH,
+    "assessment_generation": DEFAULT_FLASH_LITE,
     "gap_analysis": DEFAULT_FLASH_LITE,
     "validation_judge": DEFAULT_FLASH,
     "multimodal_fallback": DEFAULT_FLASH,
@@ -46,6 +47,7 @@ GROQ_ELIGIBLE = {
     "activity_generation",
     "gap_analysis",
     "classroom_content",
+    "assessment_generation",
 }
 
 
@@ -163,8 +165,8 @@ class LLMRouter:
 
     @retry(
         retry=retry_if_exception_type(RateLimitError),
-        wait=wait_exponential(multiplier=1, min=1, max=20),
-        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=2, min=5, max=60),
+        stop=stop_after_attempt(6),
         reraise=True,
     )
     async def _call_gemini(

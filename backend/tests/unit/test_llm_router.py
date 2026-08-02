@@ -154,7 +154,7 @@ async def test_call_gemini_wraps_rate_limit() -> None:
     gemini = AsyncMock()
     gemini.generate_structured = AsyncMock(side_effect=Exception("429"))
     router = LLMRouter(settings=_settings(), gemini=gemini, groq=None)
-    with pytest.raises(RateLimitError):
+    with patch("asyncio.sleep", new_callable=AsyncMock), pytest.raises(RateLimitError):
         await router._call_gemini(
             system_prompt="s",
             user_prompt="u",
