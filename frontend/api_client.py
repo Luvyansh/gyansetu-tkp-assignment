@@ -27,20 +27,14 @@ def _api_key() -> str:
     _load_env()
     # Single canonical name (same as backend Settings.backend_api_key).
     # TKP_API_KEY kept as an optional override for shell/CI only.
-    return (
-        os.environ.get("BACKEND_API_KEY")
-        or os.environ.get("TKP_API_KEY")
-        or ""
-    ).strip()
+    return (os.environ.get("BACKEND_API_KEY") or os.environ.get("TKP_API_KEY") or "").strip()
 
 
 def _base_url() -> str:
     _load_env()
-    return (
-        os.environ.get("TKP_API_URL")
-        or os.environ.get("BACKEND_URL")
-        or _DEFAULT_BASE
-    ).rstrip("/")
+    return (os.environ.get("TKP_API_URL") or os.environ.get("BACKEND_URL") or _DEFAULT_BASE).rstrip(
+        "/"
+    )
 
 
 class TKPApiClient:
@@ -149,11 +143,14 @@ class TKPApiClient:
 
     def stream_job_events(self, job_id: str) -> Iterator[dict[str, Any]]:
         """Yield parsed JSON events from GET /jobs/{job_id}/stream (SSE)."""
-        with httpx.Client(timeout=None) as client, client.stream(
-            "GET",
-            self._url(f"/jobs/{job_id}/stream"),
-            headers={**self._headers(), "Accept": "text/event-stream"},
-        ) as resp:
+        with (
+            httpx.Client(timeout=None) as client,
+            client.stream(
+                "GET",
+                self._url(f"/jobs/{job_id}/stream"),
+                headers={**self._headers(), "Accept": "text/event-stream"},
+            ) as resp,
+        ):
             resp.raise_for_status()
             event_name = "message"
             data_buf: list[str] = []

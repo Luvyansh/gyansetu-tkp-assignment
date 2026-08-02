@@ -191,12 +191,9 @@ async def check_groundedness(state: dict[str, Any]) -> ValidationCheck:
             updated_periods.append(period.model_copy(update={"grounding_score": score}))
         state["classroom_content"] = ClassroomContentBundle(periods=updated_periods).model_dump()
 
-    avg_score = (
-        sum(grounding_scores.values()) / len(grounding_scores) if grounding_scores else 0.0
-    )
-    details = (
-        f"avg={avg_score:.3f}; "
-        + ", ".join(f"{k}={v:.3f}" for k, v in sorted(grounding_scores.items()))
+    avg_score = sum(grounding_scores.values()) / len(grounding_scores) if grounding_scores else 0.0
+    details = f"avg={avg_score:.3f}; " + ", ".join(
+        f"{k}={v:.3f}" for k, v in sorted(grounding_scores.items())
     )
     state["grounding_scores"] = grounding_scores
 

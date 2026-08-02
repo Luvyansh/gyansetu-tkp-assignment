@@ -107,9 +107,7 @@ async def upload_document(
     _validate_magic(file.filename, raw[:8])
 
     suffix = ext
-    with tempfile.NamedTemporaryFile(
-        delete=False, suffix=suffix, prefix="tkp_upload_"
-    ) as tmp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix="tkp_upload_") as tmp:
         tmp.write(raw)
         tmp.flush()
         temp_path = tmp.name
@@ -140,8 +138,7 @@ async def upload_document(
     return DocumentUploadResponse(
         document_id=document.id,
         job_id=job.id,
-        message="Upload accepted; job created"
-        + (" and started" if auto_start else ""),
+        message="Upload accepted; job created" + (" and started" if auto_start else ""),
     )
 
 

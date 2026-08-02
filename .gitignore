@@ -44,3 +44,6 @@ backend/app/pdf_export/out/
 # Logs
 *.log
 logs/
+
+.agents/
+.claude/
