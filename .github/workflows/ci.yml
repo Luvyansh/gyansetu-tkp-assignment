@@ -39,6 +39,20 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://tkp:tkp@localhost:5433/tkp
       ENVIRONMENT: local
       LOG_LEVEL: WARNING
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: tkp
+          POSTGRES_PASSWORD: tkp
+          POSTGRES_DB: tkp
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U tkp -d tkp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -47,7 +61,7 @@ jobs:
       - name: Sync deps
         run: uv sync --extra dev
       - name: Pytest
-        run: uv run pytest
+        run: uv run pytest -m "not live_llm"
 
   eval-smoke:
     name: Eval smoke (mock)
@@ -57,6 +71,20 @@ jobs:
       GEMINI_API_KEY: eval-placeholder-key
       BACKEND_API_KEY: eval-backend-api-key-32chars!!
       DATABASE_URL: postgresql+asyncpg://tkp:tkp@localhost:5433/tkp
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: tkp
+          POSTGRES_PASSWORD: tkp
+          POSTGRES_DB: tkp
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U tkp -d tkp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
