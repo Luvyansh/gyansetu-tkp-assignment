@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from typing import Any, Literal, cast
 
 from langgraph.graph import END, START, StateGraph
@@ -123,15 +124,33 @@ def build_tkp_graph() -> Any:
     return graph.compile()
 
 
-async def run_pipeline(initial_state: dict[str, Any]) -> dict[str, Any]:
-    """Execute the compiled TKP graph from an initial state dict."""
+async def run_pipeline(
+    initial_state: dict[str, Any],
+    *,
+    on_stage: Callable[[str, float], Awaitable[None]] | None = None,
+) -> dict[str, Any]:
+    """Execute the compiled TKP graph from an initial state dict.
+
+    When ``on_stage`` is provided it is awaited after each node as
+    ``await on_stage(current_stage: str, progress_pct: float)`` so the job
+    row / SSE stream can track the real stage (e.g. knowledge_extraction)
+    instead of freezing on the pre-run ``document_intelligence`` placeholder.
+    """
     app = build_tkp_graph()
     logger.info(
         "tkp_pipeline_start",
         job_id=str(initial_state.get("job_id")),
         document_id=str(initial_state.get("document_id")),
     )
-    final_state = await app.ainvoke(initial_state)
+    final_state: dict[str, Any] | None = None
+    async for values in app.astream(initial_state, stream_mode="values"):
+        final_state = cast(dict[str, Any], values)
+        if on_stage is not None:
+            stage = final_state.get("current_stage")
+            if stage is not None:
+                await on_stage(str(stage), float(final_state.get("progress_pct") or 0.0))
+    if final_state is None:
+        final_state = dict(initial_state)
     logger.info(
         "tkp_pipeline_end",
         job_id=str(initial_state.get("job_id")),
@@ -139,4 +158,4 @@ async def run_pipeline(initial_state: dict[str, Any]) -> dict[str, Any]:
         progress=final_state.get("progress_pct"),
         error=final_state.get("error"),
     )
-    return cast(dict[str, Any], final_state)
+    return final_state
