@@ -1,5 +1,9 @@
 # Gyansetu TKP — Teacher Knowledge Package
 
+> **Note:** This project was built for the GyanSetu/IIT Mandi AI Engineer
+> Internship technical assessment. See [LICENSE](./LICENSE) — usage beyond
+> evaluating this application requires the author's permission.
+
 AI pipeline that turns educational documents (PDF/DOCX/PPTX) into a structured
 `TeacherKnowledgePackage.json` plus exportable PDFs via a 10-stage LangGraph workflow.
 
@@ -98,7 +102,3 @@ without that document. Application controls: API key auth, CORS allowlist, uploa
 validation, rate limits, secret redaction, and `bandit` on `backend/app`.
 
 Engineering issue log: **[ISSUES.md](ISSUES.md)**.
-
-## Deployment
-
-See `deployment.md` (not committed). Filled in during the deployment phase.

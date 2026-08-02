@@ -129,3 +129,92 @@ def test_route_after_validation_fail() -> None:
         "max_validation_retries": 2,
     }
     assert route_after_validation(state) == "fail"
+
+
+@pytest.mark.asyncio
+async def test_validation_retry_exhaustion_reports_validation_stage(
+    stem_pdf_path, patch_llm_router, mock_session_factory
+) -> None:
+    """Pipeline reaches validation → groundedness fails → retries exhaust.
+
+    Final state must report ``validation`` (or the retry target), never the
+    unmappable ``failed`` sentinel and never Document Intelligence.
+    """
+    from backend.app.schemas.validation import CheckStatus, ValidationCheck
+
+    structure = make_document_structure()
+    failing_ground = ValidationCheck(
+        name="groundedness_check",
+        status=CheckStatus.FAIL,
+        details="avg=0.770; judge=Period 3 introduces ungrounded weathering defs",
+        score=0.77,
+        retry_target="classroom_content",
+    )
+    schema_ok = ValidationCheck(
+        name="schema_check", status=CheckStatus.PASS, details="ok", score=1.0
+    )
+    cons_ok = ValidationCheck(
+        name="consistency_check", status=CheckStatus.PASS, details="ok", score=1.0
+    )
+
+    async def always_fail_groundedness(_state: dict[str, Any]) -> ValidationCheck:
+        return failing_ground
+
+    node_session_targets = [
+        "backend.app.graph.nodes.n2_educational_classification.AsyncSessionLocal",
+        "backend.app.graph.nodes.n3_knowledge_extraction.AsyncSessionLocal",
+        "backend.app.graph.nodes.n4_teaching_planner.AsyncSessionLocal",
+        "backend.app.graph.nodes.n5_classroom_content.AsyncSessionLocal",
+        "backend.app.graph.nodes.n6_activity_generation.AsyncSessionLocal",
+        "backend.app.graph.nodes.n7_assessment_generation.AsyncSessionLocal",
+        "backend.app.graph.nodes.n8_gap_analysis.AsyncSessionLocal",
+    ]
+    patches = [patch(t, mock_session_factory) for t in node_session_targets]
+    for p in patches:
+        p.start()
+
+    stages_seen: list[str] = []
+
+    async def _on_stage(stage: str, _pct: float) -> None:
+        stages_seen.append(stage)
+
+    try:
+        with (
+            patch(
+                "backend.app.graph.nodes.n1_document_intelligence.parse_document",
+                new_callable=AsyncMock,
+                return_value=structure,
+            ),
+            patch(
+                "backend.app.graph.nodes.n3_knowledge_extraction.insert_chunks",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "backend.app.graph.nodes.n9_validation.check_groundedness",
+                new=always_fail_groundedness,
+            ),
+            patch(
+                "backend.app.graph.nodes.n9_validation.check_schema",
+                new_callable=AsyncMock,
+                return_value=schema_ok,
+            ),
+            patch(
+                "backend.app.graph.nodes.n9_validation.check_consistency",
+                return_value=cons_ok,
+            ),
+        ):
+            state = _initial_state(str(stem_pdf_path))
+            state["max_validation_retries"] = 2
+            final = await run_pipeline(state, on_stage=_on_stage)
+    finally:
+        for p in patches:
+            p.stop()
+
+    assert final.get("error"), "expected terminal validation failure"
+    assert "groundedness" in str(final["error"]).lower()
+    assert int(final.get("validation_retry_count") or 0) >= 2
+    stage = final.get("current_stage")
+    assert stage == "validation"
+    assert stage not in {"failed", "error", "document_intelligence"}
+    assert "document_intelligence" in stages_seen  # earlier stages did run
+    assert stages_seen[-1] == "validation"
