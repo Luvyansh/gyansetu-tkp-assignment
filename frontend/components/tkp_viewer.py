@@ -55,13 +55,9 @@ def _render_overview(tkp: dict[str, Any]) -> None:
         ("Periods", str(plan.get("total_periods", "—"))),
     ]
     for col, (label, value) in zip(cols, meta, strict=True):
-        with col:
-            st.markdown(
-                f'<div class="gs-panel"><div class="gs-badge">{_safe(label)}</div>'
-                f'<p class="gs-display" style="font-size:1.25rem;margin:0.4rem 0 0 0;">'
-                f"{_safe(value)}</p></div>",
-                unsafe_allow_html=True,
-            )
+        with col, st.container(border=True):
+            st.caption(label)
+            st.markdown(f"**{_safe(value)}**")
 
     st.markdown("#### Classification")
     _md_block(
@@ -131,7 +127,7 @@ def _render_teaching_plan(tkp: dict[str, Any]) -> None:
                 margin=dict(t=48, b=40, l=40, r=20),
                 height=320,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         except Exception:
             pass
 
@@ -252,7 +248,7 @@ def _render_gap_analysis(tkp: dict[str, Any]) -> None:
 def _render_sources(tkp: dict[str, Any]) -> None:
     knowledge = tkp.get("knowledge") or {}
     st.markdown(
-        f'<p style="color:#57534E;margin-top:0;">Source anchors from '
+        f'<p class="gs-dropzone-hint" style="margin-top:0;">Source anchors from '
         f"<strong>{_safe(tkp.get('source_filename') or 'uploaded document')}</strong>. "
         "Every fact-bearing item should point back into the chapter.</p>",
         unsafe_allow_html=True,
@@ -291,10 +287,9 @@ def render_tkp(tkp: dict[str, Any]) -> None:
 
     header = tkp.get("classification") or {}
     st.markdown(
-        f'<p class="gs-display" style="font-size:1.85rem;margin-bottom:0.25rem;'
-        f'font-family:Literata,Georgia,serif;color:#1C1917;font-weight:700;">'
+        f'<p class="gs-display" style="font-size:1.85rem;margin-bottom:0.25rem;">'
         f"{_safe(header.get('topic') or 'Teacher Knowledge Package')}</p>"
-        f'<p style="color:#57534E;margin-bottom:1rem;">'
+        f'<p class="gs-dropzone-hint" style="margin-bottom:1rem;">'
         f"{_safe(header.get('subject', ''))} · {_safe(header.get('grade', ''))} · "
         f"{_safe(header.get('chapter', ''))}</p>",
         unsafe_allow_html=True,
