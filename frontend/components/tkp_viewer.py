@@ -37,7 +37,7 @@ def _source_ref(ref: dict[str, Any] | None) -> str:
     if ref.get("page") is not None:
         parts.append(f"p.{ref['page']}")
     if ref.get("quote"):
-        parts.append(f'“{_safe(ref["quote"])}”')
+        parts.append(f"“{_safe(ref['quote'])}”")
     return " · ".join(parts)
 
 
@@ -216,14 +216,12 @@ def _render_assessments(tkp: dict[str, Any]) -> None:
             opt_html = ""
             if options:
                 opt_html = (
-                    "<ul>"
-                    + "".join(f"<li>{_safe(option)}</li>" for option in options)
-                    + "</ul>"
+                    "<ul>" + "".join(f"<li>{_safe(option)}</li>" for option in options) + "</ul>"
                 )
             concepts = question.get("concepts_tested") or []
             st.markdown(
                 f'<div class="gs-content-block"><h4>Q{index}. '
-                f'[{_safe(question.get("question_type", ""))}] '
+                f"[{_safe(question.get('question_type', ''))}] "
                 f"{_safe(question.get('prompt', ''))}</h4>{opt_html}"
                 f"<p><strong>Answer:</strong> {_safe(question.get('answer_key', ''))}</p>"
                 f"<p>{_safe(question.get('rubric') or '')}</p></div>",
@@ -250,8 +248,7 @@ def _render_gap_analysis(tkp: dict[str, Any]) -> None:
             f"{_safe(item.get('diagnostic_question', ''))}</p>"
             f"<ul>"
             + "".join(
-                f"<li>{_safe(action)}</li>"
-                for action in (item.get("remedial_actions") or [])
+                f"<li>{_safe(action)}</li>" for action in (item.get("remedial_actions") or [])
             )
             + "</ul></div>",
             unsafe_allow_html=True,
@@ -285,7 +282,7 @@ def _render_sources(tkp: dict[str, Any]) -> None:
             st.markdown(
                 f'<div class="gs-content-block"><h4>{_safe(item.get(name_key, ""))}</h4>'
                 f"<p>{_safe(item.get(body_key, ''))}</p>"
-                f"<p class=\"gs-muted\">{ref}</p></div>",
+                f'<p class="gs-muted">{ref}</p></div>',
                 unsafe_allow_html=True,
             )
 
@@ -300,7 +297,7 @@ def render_tkp(tkp: dict[str, Any]) -> None:
     if not tkp:
         st.markdown(
             '<div class="gs-empty-state"><h2>No classroom package to display</h2>'
-            '<p>Return to upload and generate a package from a source chapter.</p></div>',
+            "<p>Return to upload and generate a package from a source chapter.</p></div>",
             unsafe_allow_html=True,
         )
         return
@@ -318,22 +315,22 @@ def render_tkp(tkp: dict[str, Any]) -> None:
     st.markdown(
         f'<div class="gs-review-shell"><p class="gs-eyebrow" '
         'style="color:#b9b9f9 !important;">Grounded classroom output</p>'
-        f'<h2>{_safe(header.get("topic") or "Teacher Knowledge Package")}</h2>'
-        f'<p>{_safe(header.get("subject", ""))} · {_safe(header.get("grade", ""))} · '
-        f'{_safe(header.get("chapter", ""))}</p>'
+        f"<h2>{_safe(header.get('topic') or 'Teacher Knowledge Package')}</h2>"
+        f"<p>{_safe(header.get('subject', ''))} · {_safe(header.get('grade', ''))} · "
+        f"{_safe(header.get('chapter', ''))}</p>"
         '<div class="gs-review-preview"><div class="gs-review-card is-light">'
         f'<div class="gs-card-label">Package overview</div><h3>'
-        f'{_safe(header.get("topic") or "Ready to teach")}</h3>'
+        f"{_safe(header.get('topic') or 'Ready to teach')}</h3>"
         '<div class="gs-review-metric"><div><strong class="gs-tabular">'
-        f'{_safe(period_count)}</strong><span>periods</span></div>'
+        f"{_safe(period_count)}</strong><span>periods</span></div>"
         '<div><strong class="gs-tabular">'
-        f'{concept_count}</strong><span>concepts</span></div>'
+        f"{concept_count}</strong><span>concepts</span></div>"
         '<div><strong class="gs-tabular">'
-        f'{question_count}</strong><span>questions</span></div></div></div>'
+        f"{question_count}</strong><span>questions</span></div></div></div>"
         '<div class="gs-review-card"><div class="gs-card-label">Validation</div>'
         '<h3 class="gs-tabular">'
-        f'{_safe(faithfulness)}</h3>'
-        '<p>Source anchors available for review.</p></div></div></div>',
+        f"{_safe(faithfulness)}</h3>"
+        "<p>Source anchors available for review.</p></div></div></div>",
         unsafe_allow_html=True,
     )
 

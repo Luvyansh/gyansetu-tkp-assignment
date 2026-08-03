@@ -102,8 +102,8 @@ def render() -> None:
     if not job_id:
         st.markdown(
             '<div class="gs-empty-state"><h2>No active package</h2>'
-            '<p>Upload a source chapter first, then we’ll trace every stage '
-            'from parsing to publish.</p></div>',
+            "<p>Upload a source chapter first, then we’ll trace every stage "
+            "from parsing to publish.</p></div>",
             unsafe_allow_html=True,
         )
         if st.button("Back to upload", type="primary"):
@@ -114,9 +114,9 @@ def render() -> None:
     st.markdown(
         f'<div class="gs-progress-shell"><div class="gs-progress-header">'
         '<p class="gs-eyebrow">Step 02 / 03 · grounded generation</p>'
-        '<h1>Building your classroom package</h1>'
+        "<h1>Building your classroom package</h1>"
         f'<p>Job <span class="gs-tabular">{sanitize_html(str(job_id)[:8])}</span>… · '
-        f'{sanitize_html(st.session_state.get("upload_filename") or "document")}</p></div></div>',
+        f"{sanitize_html(st.session_state.get('upload_filename') or 'document')}</p></div></div>",
         unsafe_allow_html=True,
     )
 

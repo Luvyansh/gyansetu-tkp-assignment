@@ -33,8 +33,8 @@ def render() -> None:
     if not job_id:
         st.markdown(
             '<div class="gs-empty-state"><h2>No package selected</h2>'
-            '<p>Upload a source chapter to generate a grounded classroom '
-            'package before reviewing it.</p></div>',
+            "<p>Upload a source chapter to generate a grounded classroom "
+            "package before reviewing it.</p></div>",
             unsafe_allow_html=True,
         )
         if st.button("Go to upload", type="primary"):
@@ -44,10 +44,10 @@ def render() -> None:
 
     st.markdown(
         '<div class="gs-progress-header"><p class="gs-eyebrow">'
-        'Step 03 / 03 · inspect and export</p>'
+        "Step 03 / 03 · inspect and export</p>"
         '<h1 class="gs-page-title">Your classroom package, ready to inspect.</h1>'
         '<p class="gs-muted">Review the grounded output, check the evidence, '
-        'and export the materials you need.</p></div>',
+        "and export the materials you need.</p></div>",
         unsafe_allow_html=True,
     )
 
@@ -82,7 +82,7 @@ def render() -> None:
     with st.container(border=True, key="gs_export_card"):
         st.markdown(
             '<div class="gs-upload-header"><div><p class="gs-eyebrow">Exports</p>'
-            '<h2>Take the package into your next lesson</h2></div>'
+            "<h2>Take the package into your next lesson</h2></div>"
             '<span class="gs-step-tag">JSON + PDF</span></div>',
             unsafe_allow_html=True,
         )
@@ -122,7 +122,7 @@ def render() -> None:
                 for key, value in scores.items():
                     st.markdown(
                         f'<p class="gs-muted"><span class="gs-tabular">'
-                        f'{sanitize_html(str(key))}</span> · '
+                        f"{sanitize_html(str(key))}</span> · "
                         f'<strong class="gs-tabular">{float(value):.2f}</strong></p>',
                         unsafe_allow_html=True,
                     )

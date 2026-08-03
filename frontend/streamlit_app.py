@@ -77,7 +77,7 @@ def _render_nav() -> None:
     ):
         st.markdown(
             '<div class="gs-nav-brand"><span class="gs-nav-mark">G</span>'
-            'GyanSetu <span>TKP</span></div>',
+            "GyanSetu <span>TKP</span></div>",
             unsafe_allow_html=True,
         )
         for key, label, icon in _NAV:
