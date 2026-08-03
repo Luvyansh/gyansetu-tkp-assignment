@@ -5,6 +5,33 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] Embed-count proof (mocked embed_content counter — no live quota)
+
+**Method:** Integration test
+`backend/tests/integration/test_embed_call_counts.py` runs the full LangGraph with
+a Gemini client whose ``embed_content`` is mocked but still invoked through real
+``GeminiClient.embed`` batching. Counts HTTP-equivalent calls + text-units
+(weight). Includes one forced validation retry (2 Stage-9 rounds).
+
+| Scenario | chunks | embed_content calls | text-units | batches | same-doc pre-fix | vs live 984 |
+|---|---:|---:|---:|---|---:|---:|
+| golden `stem_sample.pdf` + 1 retry | 2 | 2 | **5** | [2, 3] | 20 | **196.8×** |
+| golden `humanities_sample.pdf` + 1 retry | 2 | 2 | **5** | [2, 3] | 20 | **196.8×** |
+| live-scale (~40 chunks) + 1 retry | 40 | 3 | **43** | [32, 8, 3] | 286 | **22.9×** |
+| live-scale worst-case retry exhaust | 40 | 3 | **43** | [32, 8, 3] | 286 | **22.9×** |
+
+Breakdown (live-scale): Stage 3 = 40 texts (n3 batches 32+8); Stage 9 queries =
+3 texts once (2nd validation round = **cache hits**, 0 API). Chunks never
+re-embedded.
+
+**Vs today's incomplete pre-fix run (~984 text-units):** live-scale full run
+with retry is **43 / 984 ≈ 4.4%** of that burn (**22.9× fewer**). At 43/run,
+free-tier 1000/day allows **~23 full runs/day** — well under the 150–200
+comfort band per run.
+**Status:** Measured / committed — do not live-confirm until daily quota resets
+
+---
+
 ## [2026-08-03] Daily embed quota — Stage 9 re-embedded Stage 3 chunks
 
 **Found:** Job `efcb33eb-fe15-4c15-b617-229d609319c9` hit
