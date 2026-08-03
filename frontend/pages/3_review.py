@@ -37,12 +37,10 @@ def render() -> None:
         return
 
     st.markdown(
-        '<p class="gs-display" style="font-size:2rem;margin-bottom:0.25rem;'
-        'font-family:Literata,Georgia,serif;font-weight:700;color:#1C1917;">Review</p>'
-        '<p style="color:#57534E;margin-bottom:1rem;">'
-        "Inspect the package, download JSON or PDFs, then iterate.</p>",
+        '<p class="gs-display" style="font-size:1.75rem;margin:0 0 0.25rem 0;">Review</p>',
         unsafe_allow_html=True,
     )
+    st.caption("Inspect the package, download JSON or PDFs, then iterate.")
 
     client = get_client()
     tkp = st.session_state.get("tkp")
@@ -65,37 +63,34 @@ def render() -> None:
                 st.error(f"API error: {exc}")
                 return
 
-    st.markdown('<div class="gs-panel">', unsafe_allow_html=True)
-    st.markdown(
-        '<p class="gs-panel-title">Exports</p>',
-        unsafe_allow_html=True,
-    )
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.download_button(
-            "Download JSON",
-            data=json.dumps(tkp, indent=2, default=str),
-            file_name=f"tkp-{str(job_id)[:8]}.json",
-            mime="application/json",
-            use_container_width=True,
+    with st.container(border=True):
+        st.markdown(
+            '<p class="gs-panel-title">Exports</p>',
+            unsafe_allow_html=True,
         )
-
-    for col, (artifact, label) in zip((c2, c3, c4), _PDF_ARTIFACTS, strict=True):
-        with col:
-            try:
-                pdf_bytes = client.download_export(str(job_id), artifact)
-                st.download_button(
-                    label,
-                    data=pdf_bytes,
-                    file_name=f"{artifact}-{str(job_id)[:8]}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key=f"dl_{artifact}",
-                )
-            except httpx.HTTPError:
-                st.caption(f"{label} unavailable")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(horizontal=True, gap="small"):
+            st.download_button(
+                "Download JSON",
+                data=json.dumps(tkp, indent=2, default=str),
+                file_name=f"tkp-{str(job_id)[:8]}.json",
+                mime="application/json",
+                icon=":material/data_object:",
+                width="content",
+            )
+            for artifact, label in _PDF_ARTIFACTS:
+                try:
+                    pdf_bytes = client.download_export(str(job_id), artifact)
+                    st.download_button(
+                        label,
+                        data=pdf_bytes,
+                        file_name=f"{artifact}-{str(job_id)[:8]}.pdf",
+                        mime="application/pdf",
+                        icon=":material/picture_as_pdf:",
+                        width="content",
+                        key=f"dl_{artifact}",
+                    )
+                except httpx.HTTPError:
+                    st.caption(f"{label} unavailable")
 
     with st.expander("Evaluation / grounding report", expanded=False):
         try:
@@ -116,10 +111,8 @@ def render() -> None:
 
     render_tkp(tkp)
 
-    st.divider()
-    b1, b2 = st.columns(2)
-    with b1:
-        if st.button("New upload", use_container_width=True):
+    with st.container(horizontal=True, gap="small"):
+        if st.button("New upload", icon=":material/upload_file:", width="content"):
             for key in (
                 "job_id",
                 "document_id",
@@ -133,8 +126,7 @@ def render() -> None:
                 st.session_state.pop(key, None)
             st.session_state.view = "upload"
             st.rerun()
-    with b2:
-        if st.button("View progress", use_container_width=True):
+        if st.button("View progress", icon=":material/hourglass_top:", width="content"):
             st.session_state.view = "progress"
             st.rerun()
 

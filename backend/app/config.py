@@ -27,7 +27,8 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 25 * 1024 * 1024
     max_validation_retries: int = 2
     faithfulness_threshold: float = 0.85
-    embedding_dim: int = 768
+    # Must match local MiniLM (all-MiniLM-L6-v2) + pgvector column / Alembic 0002.
+    embedding_dim: int = 384
 
     @field_validator("groq_api_key", mode="before")
     @classmethod

@@ -1,8 +1,18 @@
-"""LLM cache key stability tests."""
+"""LLM / embedding cache key stability tests."""
 
 from __future__ import annotations
 
-from backend.app.llm.cache import cache_key
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from backend.app.llm.cache import (
+    cache_key,
+    embed_cache_key,
+    get_cached_embeddings,
+    put_cached_embeddings,
+)
+from backend.app.llm.local_embeddings import LOCAL_EMBED_MODEL
 
 
 def test_cache_key_stable_for_same_inputs() -> None:
@@ -37,3 +47,38 @@ def test_cache_key_handles_non_json_via_default_str() -> None:
 
     key = cache_key("stage", {"obj": Obj()}, "m")
     assert isinstance(key, str) and len(key) == 64
+
+
+def test_embed_cache_key_stable_and_model_scoped() -> None:
+    a = embed_cache_key("same text", LOCAL_EMBED_MODEL)
+    b = embed_cache_key("same text", LOCAL_EMBED_MODEL)
+    c = embed_cache_key("same text", "other-model")
+    d = embed_cache_key("other text", LOCAL_EMBED_MODEL)
+    assert a == b
+    assert a != c
+    assert a != d
+
+
+@pytest.mark.asyncio
+async def test_get_and_put_cached_embeddings() -> None:
+    session = AsyncMock()
+    session.commit = AsyncMock()
+    session.add = MagicMock()
+
+    empty = MagicMock()
+    empty.all.return_value = []
+    session.execute = AsyncMock(return_value=empty)
+
+    key = embed_cache_key("hello", LOCAL_EMBED_MODEL)
+    await put_cached_embeddings(session, [(key, [0.1, 0.2, 0.3])])
+    session.add.assert_called_once()
+
+    row = MagicMock()
+    row.content_hash = key
+    row.response = {"embedding": [0.1, 0.2, 0.3]}
+    hit = MagicMock()
+    hit.scalars.return_value.all.return_value = [row]
+    session.execute = AsyncMock(return_value=hit)
+
+    found = await get_cached_embeddings(session, [key])
+    assert found[key] == [0.1, 0.2, 0.3]

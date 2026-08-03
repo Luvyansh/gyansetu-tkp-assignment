@@ -18,9 +18,15 @@ from frontend.components.theme import inject_theme
 
 st.set_page_config(
     page_title="GyanSetu TKP",
-    page_icon="📗",
+    page_icon=":material/menu_book:",
     layout="wide",
     initial_sidebar_state="collapsed",
+)
+
+_NAV = (
+    ("upload", "Upload", ":material/upload_file:"),
+    ("progress", "Progress", ":material/hourglass_top:"),
+    ("review", "Review", ":material/fact_check:"),
 )
 
 
@@ -57,27 +63,38 @@ def _init_state() -> None:
             st.session_state[key] = value
 
 
+def _render_nav() -> None:
+    """Top step nav — content-sized buttons in a horizontal row (no mid-word wrap)."""
+    has_job = bool(st.session_state.get("job_id"))
+    current = st.session_state.view
+
+    with st.container(
+        horizontal=True,
+        horizontal_alignment="left",
+        vertical_alignment="center",
+        gap="small",
+        key="gs_nav_bar",
+    ):
+        st.markdown("**GyanSetu TKP**")
+        for key, label, icon in _NAV:
+            disabled = key in {"progress", "review"} and not has_job
+            clicked = st.button(
+                label,
+                key=f"nav_{key}",
+                icon=icon,
+                width="content",
+                type="primary" if current == key else "secondary",
+                disabled=disabled,
+            )
+            if clicked and not disabled:
+                st.session_state.view = key
+                st.rerun()
+
+
 def main() -> None:
     inject_theme()
     _init_state()
-
-    nav = st.session_state.view
-    cols = st.columns([1, 1, 1, 6])
-    labels = [("upload", "Upload"), ("progress", "Progress"), ("review", "Review")]
-    for col, (key, label) in zip(cols[:3], labels, strict=True):
-        with col:
-            disabled = False
-            if key in {"progress", "review"} and not st.session_state.get("job_id"):
-                disabled = True
-            if st.button(
-                label,
-                key=f"nav_{key}",
-                use_container_width=True,
-                type="primary" if nav == key else "secondary",
-                disabled=disabled,
-            ):
-                st.session_state.view = key
-                st.rerun()
+    _render_nav()
 
     view = st.session_state.view
     if view == "progress":

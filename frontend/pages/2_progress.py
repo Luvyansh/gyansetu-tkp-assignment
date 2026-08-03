@@ -36,13 +36,14 @@ def _stage_index(stage: str | None) -> int:
     if not stage:
         return -1
     key = stage.strip().lower().replace(" ", "_")
+    # Sentinels are not pipeline stages — never fuzzy-match them onto index 0.
+    if key in {"pending", "queued", "failed", "error", "unknown"}:
+        return -1
     if key in _STAGE_ORDER:
         return _STAGE_ORDER[key]
     for name, idx in _STAGE_ORDER.items():
         if name in key or key in name:
             return idx
-    if key in {"pending", "queued"}:
-        return -1
     if key in {"completed", "done"}:
         return len(PIPELINE_STAGES)
     return -1
@@ -54,9 +55,16 @@ def _stepper_html(active_stage: str | None, status: str) -> str:
         active_idx = len(PIPELINE_STAGES)
     rows: list[str] = []
     for i, (_key, label) in enumerate(PIPELINE_STAGES):
-        if status == "failed" and i == max(active_idx, 0):
+        # Only pin "failed" onto a *known* stage index — never coerce
+        # unknown/error/failed sentinels onto Document Intelligence (index 0).
+        if status == "failed" and active_idx >= 0 and i == active_idx:
             state = "is-active"
             meta = "failed"
+        elif status == "failed" and active_idx < 0:
+            # No known stage to pin — leave all steps neutral rather than
+            # inventing a Document Intelligence failure.
+            state = "is-pending"
+            meta = "waiting"
         elif i < active_idx or status == "completed":
             state = "is-done"
             meta = "done"
@@ -103,12 +111,13 @@ def render() -> None:
         return
 
     st.markdown(
-        f'<p class="gs-display" style="font-size:2rem;margin-bottom:0.35rem;'
-        f'font-family:Literata,Georgia,serif;font-weight:700;color:#1C1917;">'
-        f"Building your package</p>"
-        f'<p style="color:#57534E;">Job <code>{sanitize_html(str(job_id)[:8])}…</code> · '
-        f"{sanitize_html(st.session_state.get('upload_filename') or 'document')}</p>",
+        '<p class="gs-display" style="font-size:1.75rem;margin:0 0 0.25rem 0;">'
+        "Building your package</p>",
         unsafe_allow_html=True,
+    )
+    st.caption(
+        f"Job {sanitize_html(str(job_id)[:8])}… · "
+        f"{sanitize_html(st.session_state.get('upload_filename') or 'document')}"
     )
 
     progress_box = st.empty()

@@ -12,8 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import close_progress_queue, publish_progress
+from backend.app.config import get_settings
 from backend.app.db.models import Document, Job, StageOutput, TKPPackage
 from backend.app.db.session import AsyncSessionLocal
+from backend.app.llm.errors import humanize_provider_error
 from backend.app.logging_config import get_logger
 from backend.app.pdf_export.render import render_all_pdfs
 from backend.app.schemas.tkp import TeacherKnowledgePackage
@@ -76,6 +78,7 @@ async def build_initial_state(job: Job, document: Document) -> dict[str, Any]:
         "classification": None,
         "knowledge": None,
         "knowledge_chunk_texts": [],
+        "knowledge_chunk_embeddings": [],
         "teaching_plan": None,
         "classroom_content": None,
         "activities": None,
@@ -83,7 +86,7 @@ async def build_initial_state(job: Job, document: Document) -> dict[str, Any]:
         "gap_analysis": None,
         "validation": None,
         "validation_retry_count": 0,
-        "max_validation_retries": 2,
+        "max_validation_retries": get_settings().max_validation_retries,
         "retry_targets": [],
         "validation_feedback": "",
         "tkp": None,
@@ -218,10 +221,19 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
 
         state = await build_initial_state(job, document)
 
+        async def _on_stage(stage: str, progress_pct: float) -> None:
+            await _update_job(
+                session,
+                job,
+                status="running",
+                current_stage=stage,
+                progress_pct=progress_pct,
+            )
+
         try:
             from backend.app.graph.build_graph import run_pipeline
 
-            final_state = await run_pipeline(state)
+            final_state = await run_pipeline(state, on_stage=_on_stage)
             if not isinstance(final_state, dict):
                 if hasattr(final_state, "model_dump"):
                     final_state = final_state.model_dump()
@@ -229,11 +241,17 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                     raise TypeError("run_pipeline must return a dict-like state")
 
             if final_state.get("error"):
+                # Prefer the pipeline's reported stage; never persist the
+                # unmappable sentinels "failed"/"error" (UI historically pinned
+                # those onto Document Intelligence).
+                fail_stage = str(final_state.get("current_stage") or "").strip()
+                if fail_stage.lower() in {"", "failed", "error"}:
+                    fail_stage = job.current_stage or "validation"
                 await _update_job(
                     session,
                     job,
                     status="failed",
-                    current_stage=final_state.get("current_stage") or "error",
+                    current_stage=fail_stage,
                     progress_pct=float(final_state.get("progress_pct") or job.progress_pct),
                     error=str(final_state["error"]),
                 )
@@ -247,18 +265,21 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
                     progress_pct=float(final_state.get("progress_pct") or 100.0),
                 )
         except Exception as exc:
+            friendly = humanize_provider_error(exc)
             logger.error(
                 "pipeline_failed",
                 job_id=str(job_id),
-                error=str(exc),
+                error=friendly,
                 traceback=traceback.format_exc(),
+                stage=job.current_stage,
             )
+            # Preserve last known stage (e.g. knowledge_extraction) so the UI
+            # does not pin the failure on the pre-run document_intelligence label.
             await _update_job(
                 session,
                 job,
                 status="failed",
-                current_stage="error",
-                error=str(exc),
+                error=friendly,
             )
         finally:
             # Clean temp upload if present

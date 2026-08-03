@@ -11,6 +11,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from backend.app.llm.base import LLMResponse
+from backend.app.llm.errors import DailyEmbedQuotaError, is_daily_embed_quota_error
 from backend.app.llm.rate_limit import rate_limited
 from backend.app.logging_config import get_logger
 
@@ -20,6 +21,8 @@ logger = get_logger(__name__)
 # Gemini 2.0 Flash / Flash-Lite retired 2026-06-01 (free-tier quota limit:0).
 # Gemini 2.5 Flash / Flash-Lite return 404 for new API keys ("no longer available
 # to new users"). Use current stable 3.x IDs — see ISSUES.md.
+# Embeddings moved to local MiniLM (see local_embeddings.py); DEFAULT_EMBED is
+# retained only for legacy rate-limit / error-string tests.
 DEFAULT_FLASH_LITE = "gemini-3.5-flash-lite"
 DEFAULT_FLASH = "gemini-3.5-flash"
 DEFAULT_EMBED = "gemini-embedding-001"
@@ -77,34 +80,69 @@ class GeminiClient:
         )
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
+        """Embed texts via Gemini batch ``embed_content`` (one RPM slot per batch).
+
+        The google-genai SDK accepts a list of strings as ``contents`` and returns
+        one embedding per input. We still chunk oversized lists to stay within
+        API batch limits, and wrap each request in the shared RPM limiter.
+        """
         if not texts:
             return []
+
         result: list[list[float]] = []
         embed_config = types.EmbedContentConfig(output_dimensionality=768)
-        for text in texts:
-            response = await self._client.aio.models.embed_content(
-                model=DEFAULT_EMBED,
-                contents=text,
-                config=embed_config,
-            )
-            # google-genai returns embeddings on the response
-            embedding = getattr(response, "embeddings", None) or getattr(
-                response, "embedding", None
-            )
-            if embedding is None:
-                values = list(getattr(response, "values", []) or [])
-            elif isinstance(embedding, list) and embedding:
-                first = embedding[0]
-                values = list(getattr(first, "values", first) or [])
+        # Free-tier embed RPM counts per text (~100/min). Batch for latency, but
+        # keep each HTTP call within the limiter budget (80/min with headroom).
+        max_batch = 40
+
+        for i in range(0, len(texts), max_batch):
+            batch = texts[i : i + max_batch]
+            try:
+                async with rate_limited(DEFAULT_EMBED, weight=len(batch)):
+                    response = await self._client.aio.models.embed_content(
+                        model=DEFAULT_EMBED,
+                        contents=cast(Any, batch),
+                        config=embed_config,
+                    )
+            except Exception as exc:
+                if is_daily_embed_quota_error(exc):
+                    raise DailyEmbedQuotaError() from exc
+                raise
+            result.extend(self._parse_embeddings(response, expected=len(batch)))
+        return result
+
+    @staticmethod
+    def _parse_embeddings(response: Any, *, expected: int) -> list[list[float]]:
+        """Normalize SDK embed response into ``expected`` float vectors of dim 768."""
+        embedding = getattr(response, "embeddings", None) or getattr(response, "embedding", None)
+        raw_items: list[Any]
+        if embedding is None:
+            values = list(getattr(response, "values", []) or [])
+            raw_items = [values] if values else []
+        elif isinstance(embedding, list):
+            raw_items = list(embedding)
+        else:
+            raw_items = [embedding]
+
+        vectors: list[list[float]] = []
+        for item in raw_items:
+            if isinstance(item, (list, tuple)):
+                values = list(item)
             else:
-                values = list(getattr(embedding, "values", []) or [])
-            # Pad/truncate to 768 for pgvector column
+                values = list(getattr(item, "values", item) or [])
             if len(values) > 768:
                 values = values[:768]
             elif len(values) < 768:
-                values = values + [0.0] * (768 - len(values))
-            result.append([float(v) for v in values])
-        return result
+                values = list(values) + [0.0] * (768 - len(values))
+            vectors.append([float(v) for v in values])
+
+        if len(vectors) < expected:
+            # Pad missing slots with zeros so callers keep index alignment.
+            zero = [0.0] * 768
+            vectors.extend(zero for _ in range(expected - len(vectors)))
+        elif len(vectors) > expected:
+            vectors = vectors[:expected]
+        return vectors
 
     async def generate_multimodal(
         self,

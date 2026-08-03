@@ -1,5 +1,9 @@
 # Gyansetu TKP — Teacher Knowledge Package
 
+> **Note:** This project was built for the GyanSetu/IIT Mandi AI Engineer
+> Internship technical assessment. See [LICENSE](./LICENSE) — usage beyond
+> evaluating this application requires the author's permission.
+
 AI pipeline that turns educational documents (PDF/DOCX/PPTX) into a structured
 `TeacherKnowledgePackage.json` plus exportable PDFs via a 10-stage LangGraph workflow.
 
@@ -69,6 +73,8 @@ uv run python evals/run_ragas_eval.py --mock   # CI-safe; no live LLM keys requi
 ```
 
 Faithfulness threshold: **≥ 0.85** (`FAITHFULNESS_THRESHOLD` / `settings.faithfulness_threshold`).
+Kept at 0.85 after MiniLM migration — the live Period 3 hallucination scores ~0.80
+under MiniLM and would auto-pass at 0.50 (see ISSUES.md).
 Reports: `evals/reports/latest_report.json`, `evals/reports/latest_summary.md`.
 
 ## Orchestration
@@ -79,10 +85,11 @@ Stage 8 runs in parallel with them (depends only on Stage 3).
 
 ## Design decisions
 
+- **Decision:** local `all-MiniLM-L6-v2` embeddings (384-d) into pgvector / **Because:** Gemini Embedding free-tier daily/RPM caps were burning the demo; local MiniLM removes that dependency entirely and loads once at app startup.
+- **Decision:** Flash-Lite primary → Groq fallback → full Flash last-resort / **Because:** Flash free-tier (20 RPD) was the binding constraint; Lite (~250K TPM) covers full-document extraction/planning with headroom, Groq absorbs overflow, Flash only if both fail.
 - **Decision:** pgvector on Postgres / **Because:** one free resource instead of a separate vector DB.
-- **Decision:** Gemini primary, Groq fallback / **Because:** Gemini's context + multimodal for chapters; Groq for speed/overflow on high-volume generation.
 - **Decision:** no Celery/Redis in v1 / **Because:** single-reviewer demo; asyncio + FastAPI background tasks suffice.
-- **Decision:** hallucination check via embedding similarity + LLM judge / **Because:** FAQ grounding rule — facts from source only; pedagogy may be general.
+- **Decision:** hallucination check via embedding similarity + LLM judge; threshold stays **0.85** / **Because:** FAQ grounding rule — facts from source only; pedagogy may be general. Synthetic MiniLM bands suggested 0.50, but the real Period 3 "agents of gradation" case scores ~0.80 under MiniLM and would auto-pass at 0.50 without the judge.
 - **Decision:** flexible period count / **Because:** FAQ Q3 — driven by content volume/complexity, not hardcoded 5×40.
 
 ## Eval thresholds

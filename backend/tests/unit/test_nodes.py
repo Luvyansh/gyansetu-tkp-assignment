@@ -143,7 +143,7 @@ async def test_n8_gap_analysis(patch_llm_router: AsyncMock, session_patches: Mag
 
 @pytest.mark.asyncio
 async def test_n9_validation_pass(patch_llm_router: AsyncMock) -> None:
-    async def high_sim(texts: list[str]) -> list[list[float]]:
+    async def high_sim(texts: list[str], **_kwargs: object) -> list[list[float]]:
         return [[1.0, 0.0, 0.0] for _ in texts]
 
     patch_llm_router.embed = AsyncMock(side_effect=high_sim)

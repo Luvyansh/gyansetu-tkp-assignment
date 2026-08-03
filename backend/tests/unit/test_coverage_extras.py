@@ -81,9 +81,31 @@ async def test_verify_api_key_missing() -> None:
 
 @pytest.mark.asyncio
 async def test_fail_job_node() -> None:
-    out = await fail_job({"validation_feedback": "bad schema", "progress_pct": 90})
-    assert out["current_stage"] == "failed"
+    out = await fail_job(
+        {
+            "validation_feedback": "bad schema",
+            "progress_pct": 90,
+            "current_stage": "validation",
+            "retry_targets": ["classroom_content"],
+        }
+    )
+    # Must report the real last-active stage — never the "failed" sentinel
+    # (UI historically mapped that onto Document Intelligence).
+    assert out["current_stage"] == "validation"
     assert "bad schema" in out["error"]
+
+
+@pytest.mark.asyncio
+async def test_fail_job_falls_back_to_retry_target() -> None:
+    out = await fail_job(
+        {
+            "validation_feedback": "ungrounded",
+            "progress_pct": 90,
+            "current_stage": "failed",
+            "retry_targets": ["classroom_content"],
+        }
+    )
+    assert out["current_stage"] == "classroom_content"
 
 
 @pytest.mark.asyncio

@@ -68,8 +68,10 @@ class GroqClient:
         )
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        # Groq does not expose the same embedding model; raise to force Gemini path.
-        raise NotImplementedError("Groq client does not provide embeddings; use Gemini.")
+        raise NotImplementedError(
+            "Embeddings are local (sentence-transformers/all-MiniLM-L6-v2); "
+            "use LLMRouter.embed — Groq has no embedding path."
+        )
 
     async def generate_multimodal(
         self,
