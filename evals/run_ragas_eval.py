@@ -3,7 +3,7 @@
 
 CI-safe by default (``EVAL_MOCK=1``). Set ``EVAL_MOCK=0`` to call real LLMs.
 
-Faithfulness threshold documented: >= 0.50 (MiniLM-calibrated; was 0.85 under Gemini embeds)
+Faithfulness threshold documented: >= 0.85 (kept after MiniLM real-case check; 0.50 was unsafe)
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ os.environ.setdefault("EVAL_MOCK", "1")
 
 GOLDEN_DIR = ROOT / "evals" / "golden_dataset"
 REPORTS_DIR = ROOT / "evals" / "reports"
-FAITHFULNESS_THRESHOLD = 0.50
+FAITHFULNESS_THRESHOLD = 0.85
 
 
 def _load_labels() -> list[tuple[Path, dict[str, Any]]]:
