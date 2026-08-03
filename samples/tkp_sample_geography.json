@@ -1,0 +1,610 @@
+{
+  "schema_version": "1.0",
+  "package_id": "1a1e96ed-95fa-46a2-ad6e-b08e3b97638f",
+  "job_id": "8aaff7d3-6954-4ba0-b85e-39e07a799712",
+  "document_id": "e7efd006-7fb8-44cd-9e81-8176bbf5850c",
+  "source_filename": "sample_ncert.pdf",
+  "created_at": "2026-08-03T09:50:40.074582Z",
+  "classification": {
+    "subject": "Geography",
+    "grade": "Class 9",
+    "difficulty": "intermediate",
+    "topic": "Shaping of the Earth's Surface",
+    "chapter": "Chapter 2 – Shaping of the Earth’s Surface",
+    "category": "STEM",
+    "language": "English",
+    "rationale": "The text covers core geomorphology concepts such as plate tectonics, weathering, erosion, and internal/external Earth forces, explicitly referencing Grade 9 textbook structure from 'Understanding Society: India and Beyond'."
+  },
+  "knowledge": {
+    "learning_objectives": [
+      {
+        "text": "Understand the theory of plate tectonics and how it shapes the Earth's surface.",
+        "bloom_level": "Understand",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 13,
+          "quote": "One of the most important ideas that explains these changes is the theory of plate tectonics"
+        }
+      },
+      {
+        "text": "Explain how weathering and erosion work together to break down and reshape the Earth's surface.",
+        "bloom_level": "Understand",
+        "source_ref": {
+          "section": null,
+          "paragraph": 1,
+          "page": 19,
+          "quote": "Weathering and erosion play a vital role in the development of landforms by continuously breaking down and reshaping the Earth’s surface."
+        }
+      }
+    ],
+    "prerequisites": [
+      {
+        "text": "Basic knowledge of the Earth's layers and physical geography.",
+        "source_ref": null
+      }
+    ],
+    "concepts": [
+      {
+        "name": "Plate Tectonics",
+        "explanation": "A theory that explains the movement of the Earth's crust where the outermost layer is broken into several large and small pieces called tectonic plates that move slowly over the semi-molten layer beneath them.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 1,
+          "page": 13,
+          "quote": "the theory of plate tectonics, which describes how large pieces of the Earth’s crust move slowly over the molten mantle."
+        }
+      },
+      {
+        "name": "Weathering",
+        "explanation": "The process through which rocks on the Earth's surface break down into smaller pieces due to various processes without involving the movement of the broken material.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 19,
+          "quote": "Weathering is the process through which rocks on the Earth’s surface break down into smaller pieces due to various processes. It does not involve movement of the broken material"
+        }
+      },
+      {
+        "name": "Erosion",
+        "explanation": "The process by which soil, rocks, and other surface materials are worn away and carried from one place to another by natural agents like water, wind, ice, or waves.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 1,
+          "page": 20,
+          "quote": "Erosion is the process by which soil, rocks, and other surface materials are worn away and carried from one place to another by natural agents like water, wind, ice, or waves."
+        }
+      }
+    ],
+    "definitions": [
+      {
+        "term": "Landform",
+        "definition": "A natural feature on the Earth’s surface formed by processes, such as weathering, erosion, deposition, and the movement of the Earth’s crust.",
+        "source_ref": {
+          "section": "Landforms:",
+          "paragraph": null,
+          "page": 13,
+          "quote": "A landform is a natural feature on the Earth’s surface formed by processes, such as weathering, erosion, deposition, and the movement of the Earth’s crust."
+        }
+      },
+      {
+        "term": "Lithosphere",
+        "definition": "The rigid outer layer of the Earth that includes the crust and upper mantle.",
+        "source_ref": {
+          "section": null,
+          "paragraph": null,
+          "page": 14,
+          "quote": "The crust along with the upper part of the mantle forms the lithosphere."
+        }
+      },
+      {
+        "term": "Asthenosphere",
+        "definition": "A hot, mobile layer of partially molten rock beneath the lithosphere that allows plates to move.",
+        "source_ref": {
+          "section": null,
+          "paragraph": null,
+          "page": 14,
+          "quote": "Beneath the lithosphere lies the asthenosphere, which is semi-molten and allows the plates to move."
+        }
+      }
+    ],
+    "formulae": [],
+    "keywords": [
+      {
+        "term": "Plate Tectonics",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 13,
+          "quote": "Plate tectonics is an important theory, given by W.J. Morgan"
+        }
+      },
+      {
+        "term": "Weathering",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 19,
+          "quote": "Weathering is the process through which rocks on the Earth’s surface break down"
+        }
+      },
+      {
+        "term": "Erosion",
+        "source_ref": {
+          "section": null,
+          "paragraph": 1,
+          "page": 20,
+          "quote": "Erosion is the process by which soil, rocks, and other surface materials are worn away"
+        }
+      },
+      {
+        "term": "Lithosphere",
+        "source_ref": {
+          "section": null,
+          "paragraph": null,
+          "page": 14,
+          "quote": "The crust along with the upper part of the mantle forms the lithosphere."
+        }
+      },
+      {
+        "term": "Asthenosphere",
+        "source_ref": {
+          "section": null,
+          "paragraph": null,
+          "page": 14,
+          "quote": "Beneath the lithosphere lies the asthenosphere"
+        }
+      }
+    ],
+    "examples": [
+      {
+        "title": "Fold Mountains Formation",
+        "description": "When continental plates collide, they form fold mountains, such as the Himalaya.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 15,
+          "quote": "When continental plates collide, they form fold mountains, such as the Himalaya."
+        }
+      },
+      {
+        "title": "Divergent Boundary Example",
+        "description": "The Mid-Atlantic Ridge created by plates moving away from each other and magma rising to form new crust.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 15,
+          "quote": "creating features, such as mid-ocean ridges. The Mid-Atlantic Ridge is a good example."
+        }
+      },
+      {
+        "title": "Transform Boundary Example",
+        "description": "The San Andreas Fault in the United States where plates slide past each other.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 15,
+          "quote": "such as along the San Andreas Fault in the United States."
+        }
+      }
+    ],
+    "applications": [
+      {
+        "description": "Identification of earthquake and volcano-prone regions and managing disasters arising from them using the theory of plate tectonics.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 17,
+          "quote": "This theory is very important for identification of earthquake and volcano-prone regions and managing disasters arising from them."
+        }
+      },
+      {
+        "description": "Water and soil conservation techniques like contouring, bunding, terracing, dams, and canals employed in agriculture.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 1,
+          "page": 21,
+          "quote": "employed sophisticated techniques, including contouring, bunding, terracing, dams, and canals for water management."
+        }
+      }
+    ],
+    "common_misconceptions": [
+      {
+        "statement": "Weathering involves the movement of broken rock material across the Earth's surface.",
+        "correction": "Weathering only involves the breaking down of rocks into smaller pieces without the movement of the material; movement is a characteristic of erosion.",
+        "source_ref": {
+          "section": null,
+          "paragraph": 2,
+          "page": 19,
+          "quote": "It does not involve movement of the broken material, only the breaking down."
+        }
+      }
+    ]
+  },
+  "teaching_plan": {
+    "total_periods": 2,
+    "periods": [
+      {
+        "period_number": 1,
+        "title": "Internal Forces and Plate Tectonics",
+        "duration_minutes": 45,
+        "objectives": [
+          "Understand the theory of plate tectonics and how it shapes the Earth's surface.",
+          "Define landform, lithosphere, and asthenosphere.",
+          "Examine examples of plate boundaries such as fold mountains, mid-ocean ridges, and transform faults."
+        ],
+        "concepts_covered": [
+          "Plate Tectonics"
+        ],
+        "pacing_rationale": "Focuses entirely on internal Earth dynamics, foundational structure (lithosphere/asthenosphere), and tectonic movements to build a solid base before moving to surface processes."
+      },
+      {
+        "period_number": 2,
+        "title": "External Forces: Weathering and Erosion",
+        "duration_minutes": 45,
+        "objectives": [
+          "Explain how weathering and erosion work together to break down and reshape the Earth's surface.",
+          "Distinguish between weathering (in-place breakdown) and erosion (transportation of material) to address common misconceptions."
+        ],
+        "concepts_covered": [
+          "Weathering",
+          "Erosion"
+        ],
+        "pacing_rationale": "Dedicates the second period to external surface-shaping processes, contrasting them directly against internal tectonic forces and correcting misconceptions regarding rock movement."
+      }
+    ],
+    "overall_rationale": "The two-period structure cleanly bifurcates the chapter's content into internal forces (Plate Tectonics) and external forces (Weathering and Erosion), ensuring adequate time for definitions, examples, and addressing common misconceptions without rushing."
+  },
+  "classroom_content": {
+    "periods": [
+      {
+        "period_number": 1,
+        "entry_ticket": "Name the three main layers of the Earth.",
+        "teacher_script": "Good morning, class! Today we begin exploring how the Earth's surface is constantly transformed by powerful forces acting from within and on the surface. One of the most important ideas explaining these changes is the theory of plate tectonics, given by W.J. Morgan. This theory describes how large pieces of the Earth's crust move slowly over the molten mantle. Let us examine the Earth's layers: the crust, mantle, and core. The crust and the upper part of the mantle together form the rigid outer layer called the lithosphere. Beneath the lithosphere lies the asthenosphere, a hot, mobile layer of partially molten rock that allows the plates to move. The movement of tectonic plates is driven by convection currents in the mantle, where heat from the core causes molten material to rise and cooler material to sink. When these plates meet at plate boundaries, they interact in three ways: convergent boundaries where plates move towards each other (forming features like fold mountains such as the Himalaya), divergent boundaries where plates move away from each other (creating features like the Mid-Atlantic Ridge), and transform boundaries where plates slide past each other (such as along the San Andreas Fault).",
+        "blackboard_notes": "Key Terms & Concepts:\n- Theory of Plate Tectonics: Given by W.J. Morgan; describes movement of Earth's crust over the mantle.\n- Landform: A natural feature on the Earth's surface formed by weathering, erosion, deposition, and crust movement.\n- Earth's Layers: Crust, Mantle, Core.\n- Lithosphere: Crust + upper part of the mantle.\n- Asthenosphere: Hot, mobile layer of partially molten rock beneath the lithosphere.\n- Plate Boundaries:\n  1. Convergent (e.g., Himalaya form via continental collision)\n  2. Divergent (e.g., Mid-Atlantic Ridge)\n  3. Transform (e.g., San Andreas Fault)",
+        "classroom_activities": [
+          {
+            "name": "Plate Boundary Discussion and Mapping",
+            "activity_type": "discussion",
+            "duration_minutes": 20,
+            "materials": [
+              "World map showing major plates"
+            ],
+            "instructions": "In pairs, examine the world map showing major tectonic plates. Pick two plates, identify whether they carry continents or oceans, and discuss how convection currents in the mantle push and pull these massive slabs of solid rock a few centimeters per year.",
+            "success_criteria": "Students can correctly identify plate types and explain how convection currents cause plate movement."
+          }
+        ],
+        "checkpoint_questions": [
+          "Who formulated the theory of plate tectonics?",
+          "What is the difference between the lithosphere and the asthenosphere?",
+          "Name the three main types of plate boundaries and give an example for each."
+        ],
+        "exit_ticket": "Define what a landform is in one sentence.",
+        "homework": "Write a short paragraph explaining how convection currents in the mantle cause tectonic plates to move.",
+        "mentor_moment": "Remember that the Earth beneath our feet, though it feels completely solid and unmoving, is part of a grand, dynamic system that has been shifting and shaping our world for millions of years. Every mountain and valley tells the story of these slow, powerful forces!",
+        "grounding_score": null
+      },
+      {
+        "period_number": 2,
+        "entry_ticket": "Write down one difference you think exists between how mountains are formed by internal forces versus how rocks on the surface are broken down.",
+        "teacher_script": "Welcome back, class! In our previous session, we explored internal forces like plate tectonics that build up major physical features from deep within the Earth. Today, we turn our attention outward to examine the external forces that continuously break down and reshape the Earth's surface: weathering and erosion. A landform is a natural feature on the Earth’s surface formed by processes such as weathering, erosion, deposition, and the movement of the Earth’s crust. Weathering is the process through which rocks on the Earth’s surface break down into smaller pieces due to various processes. Crucially, weathering does not involve the movement of the broken material—it only involves breaking down rocks in place. Once those pieces are broken down, erosion takes over. Erosion is the process by which soil, rocks, and other surface materials are worn away and carried from one place to another by natural agents like water, wind, ice, or waves. Let us be very careful to avoid the common misconception that weathering involves the transport of material; movement is the defining feature of erosion!",
+        "blackboard_notes": "External Forces Shaping the Earth:\n1. Weathering: The process through which rocks on the Earth's surface break down into smaller pieces.\n   - Key Fact: Does NOT involve movement of the broken material.\n2. Erosion: The process by which soil, rocks, and other surface materials are worn away and carried from one place to another.\n   - Natural Agents: Water, wind, ice, or waves.\n3. Landform Definition: A natural feature on the Earth's surface formed by processes such as weathering, erosion, deposition, and crust movement.",
+        "classroom_activities": [
+          {
+            "name": "Weathering vs. Erosion Sorting Discussion",
+            "activity_type": "discussion",
+            "duration_minutes": 20,
+            "materials": [
+              "Whiteboard markers",
+              "Scenario cards detailing various surface changes"
+            ],
+            "instructions": "Divide students into small groups. Distribute scenario cards describing different geological events (e.g., rainwater cracking a rock in place versus a river carrying sediment downstream). Have groups classify each scenario as either 'Weathering' or 'Erosion' and explain why based on whether movement of material occurred.",
+            "success_criteria": "Students correctly classify scenarios and explicitly justify their choice by confirming or denying the presence of material transport."
+          }
+        ],
+        "checkpoint_questions": [
+          "What is the primary difference between weathering and erosion regarding rock material?",
+          "Does weathering involve the movement of broken rock material across the Earth's surface?",
+          "What are some natural agents responsible for erosion?"
+        ],
+        "exit_ticket": "Define weathering in your own words and state one key factor that distinguishes it from erosion.",
+        "homework": "Write a short paragraph explaining how weathering and erosion work together to shape landforms, ensuring you correct the misconception that weathering moves rocks from place to place.",
+        "mentor_moment": "Geography allows us to read the history of our planet written right in the rocks and soil beneath our feet. Every time you notice a cracked stone or a river carrying silt, you are witnessing the patient, powerful forces of nature at work. Keep looking closely at the world around you!",
+        "grounding_score": null
+      }
+    ]
+  },
+  "activities": {
+    "activities": [
+      {
+        "name": "Asthenosphere and Lithosphere Convection Demonstration",
+        "activity_type": "demo",
+        "duration_minutes": 15,
+        "materials": [
+          "Beaker or transparent container",
+          "Water",
+          "Heated plate or burner",
+          "Small plastic pieces or sawdust"
+        ],
+        "instructions": "Fill the container with water and place it on the heat source. Add a small amount of sawdust or tiny plastic pieces to the water. Heat the bottom and observe how the warm water rises and cooler water sinks, creating convection currents. Explain that this mirrors how heat from the Earth's core moves the semi-molten asthenosphere and pushes the rigid lithosphere plates above.",
+        "success_criteria": "Students can visually connect the bubbling/circulating liquid to convection currents in the mantle that move tectonic plates."
+      },
+      {
+        "name": "Tectonic Plate Boundary Role-Play",
+        "activity_type": "role_play",
+        "duration_minutes": 20,
+        "materials": [
+          "No special materials required"
+        ],
+        "instructions": "Divide the classroom into small groups. Assign each group a plate boundary type: Convergent, Divergent, or Transform. Have students physically move their hands or bodies to demonstrate how plates move relative to each other. For convergent, they push palms together to form fold mountains like the Himalaya. For divergent, they pull hands apart to create mid-ocean ridges. For transform, they slide hands past each other like the San Andreas Fault.",
+        "success_criteria": "Students accurately demonstrate the directional movement of plates and name a real-world geographic feature resulting from each boundary type."
+      },
+      {
+        "name": "Weathering vs. Erosion Sorting Challenge",
+        "activity_type": "discussion",
+        "duration_minutes": 15,
+        "materials": [
+          "Index cards with various geological scenarios written on them"
+        ],
+        "instructions": "Distribute index cards describing different surface processes (e.g., 'Rainwater dissolving rock minerals in place', 'Wind carrying sand grains across a desert', 'Ice cracking rocks in a mountain crevice'). Have students work in pairs to sort the cards into two categories: Weathering or Erosion, keeping in mind that weathering does not involve the movement of broken material while erosion does.",
+        "success_criteria": "Students correctly categorize scenarios and explicitly justify their sorting based on whether material transport occurs."
+      },
+      {
+        "name": "Landform Mapping and Hazard Identification",
+        "activity_type": "other",
+        "duration_minutes": 25,
+        "materials": [
+          "World map printouts",
+          "Colored markers"
+        ],
+        "instructions": "Provide students with a blank or outline world map. Have them use markers to locate and mark major tectonic features discussed in the unit, such as the Himalaya (convergent boundary), the Mid-Atlantic Ridge (divergent boundary), and the San Andreas Fault (transform boundary). Then, have them shade regions prone to earthquakes and volcanoes based on plate boundaries.",
+        "success_criteria": "Students successfully map key plate boundaries and link them to earthquake- and volcano-prone regions."
+      }
+    ]
+  },
+  "assessments": {
+    "formative": [
+      {
+        "question_type": "mcq",
+        "prompt": "What is the rigid outer layer of the Earth that includes the crust and upper mantle called?",
+        "options": [
+          "Asthenosphere",
+          "Lithosphere",
+          "Core",
+          "Mantle"
+        ],
+        "answer_key": "Lithosphere",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 14"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Define a landform and give two examples.",
+        "options": null,
+        "answer_key": "A landform is a natural feature on the Earth's surface formed by processes such as weathering, erosion, deposition, and the movement of the Earth’s crust. Examples include mountains, valleys, plateaus, plains, deserts, and coastal features.",
+        "rubric": "Award 1 mark for the correct definition and 1 mark for providing two accurate examples.",
+        "marks": 2.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 13"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "Which theory explains how large pieces of the Earth's crust move slowly over the molten mantle?",
+        "options": [
+          "Theory of Continental Drift",
+          "Theory of Plate Tectonics",
+          "Seafloor Spreading Theory",
+          "Convection Theory"
+        ],
+        "answer_key": "Theory of Plate Tectonics",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 13"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Distinguish between weathering and erosion regarding the movement of material.",
+        "options": null,
+        "answer_key": "Weathering is the process through which rocks break down into smaller pieces in place without involving the movement of the broken material. Erosion, on the other hand, is the process by which soil, rocks, and surface materials are worn away and carried from one place to another by natural agents.",
+        "rubric": "Award 1 mark for stating weathering does not involve movement of material, and 1 mark for stating erosion involves carrying material from one place to another.",
+        "marks": 2.0,
+        "concepts_tested": [
+          "Weathering",
+          "Erosion"
+        ],
+        "source_ref_hint": "Pages 19-20"
+      }
+    ],
+    "summative": [
+      {
+        "question_type": "mcq",
+        "prompt": "Who is credited with giving the theory of plate tectonics?",
+        "options": [
+          "Alfred Wegener",
+          "W.J. Morgan",
+          "Charles Darwin",
+          "Harry Hess"
+        ],
+        "answer_key": "W.J. Morgan",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 13"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "What feature is formed when continental plates collide?",
+        "options": [
+          "Mid-ocean ridges",
+          "Fold mountains",
+          "Transform faults",
+          "Trenches"
+        ],
+        "answer_key": "Fold mountains",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 15"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "Which layer beneath the lithosphere is semi-molten and allows tectonic plates to move?",
+        "options": [
+          "Core",
+          "Asthenosphere",
+          "Crust",
+          "Inner core"
+        ],
+        "answer_key": "Asthenosphere",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 14"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Explain what causes tectonic plates to move.",
+        "options": null,
+        "answer_key": "The movement of tectonic plates is caused by convection currents in the mantle. Heat from the Earth’s core causes molten material in the mantle to rise, while cooler material sinks, creating continuous currents that push and pull the tectonic plates.",
+        "rubric": "Award 1 mark for mentioning convection currents in the mantle and 1 mark for explaining the rising and sinking cycle driven by core heat.",
+        "marks": 2.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 15"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Describe the three main types of plate boundaries based on plate movement.",
+        "options": null,
+        "answer_key": "1. Convergent boundary: two plates move towards each other, leading to collisions or subduction. 2. Divergent boundary: plates move away from each other, allowing magma to rise and form new crust. 3. Transform boundary: plates slide past each other without creating or destroying crust.",
+        "rubric": "Award 1 mark for each correctly described plate boundary type (Total 3 marks).",
+        "marks": 3.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 15"
+      },
+      {
+        "question_type": "long",
+        "prompt": "Discuss the roles of weathering and erosion in the development of landforms, ensuring you correct the common misconception regarding rock movement.",
+        "options": null,
+        "answer_key": "Weathering and erosion play a vital role in the development of landforms by continuously breaking down and reshaping the Earth’s surface. A common misconception is that weathering involves the movement of broken rock material; however, weathering strictly refers to rocks breaking down into smaller pieces in place without moving. Erosion follows or occurs alongside this by taking the worn-away soil, rocks, and surface materials and carrying them from one place to another using natural agents like water, wind, ice, or waves.",
+        "rubric": "Award marks for: explaining weathering (1 mark), explaining erosion (1 mark), explaining their combined role in shaping landforms (1 mark), and explicitly addressing and correcting the misconception about rock movement in weathering (1 mark).",
+        "marks": 4.0,
+        "concepts_tested": [
+          "Weathering",
+          "Erosion"
+        ],
+        "source_ref_hint": "Pages 19-20"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Provide examples for each of the following: a fold mountain, a divergent boundary feature, and a transform boundary.",
+        "options": null,
+        "answer_key": "Fold mountain: The Himalaya. Divergent boundary feature: The Mid-Atlantic Ridge. Transform boundary: The San Andreas Fault in the United States.",
+        "rubric": "Award 1 mark for each correct example matching the specified boundary or feature type (Total 3 marks).",
+        "marks": 3.0,
+        "concepts_tested": [
+          "Plate Tectonics"
+        ],
+        "source_ref_hint": "Page 15"
+      }
+    ],
+    "total_marks": 15.0
+  },
+  "gap_analysis": {
+    "gaps": [
+      {
+        "misconception": "Weathering involves the movement of broken rock material across the Earth's surface.",
+        "diagnostic_question": "A rock high on a mountain cracks due to freezing water, and the pieces stay right where they fell. Is this an example of weathering, erosion, or both?",
+        "severity": "high",
+        "remedial_actions": [
+          "Use a side-by-side comparison table contrasting weathering (in-place breakdown) with erosion (transportation).",
+          "Provide a concrete analogy such as crumbling a cookie on a plate versus sliding the cookie crumbs across the table with a finger."
+        ],
+        "related_concepts": [
+          "Weathering",
+          "Erosion"
+        ]
+      },
+      {
+        "misconception": "Tectonic plates float on a completely liquid ocean of magma.",
+        "diagnostic_question": "What is the physical state of the asthenosphere beneath the tectonic plates?",
+        "severity": "medium",
+        "remedial_actions": [
+          "Clarify that the asthenosphere is 'semi-molten' or plastic-like, similar to thick toothpaste or warm caramel, rather than a free-flowing liquid.",
+          "Use a diagram showing the rigid lithosphere floating on the ductile asthenosphere."
+        ],
+        "related_concepts": [
+          "Plate Tectonics",
+          "Lithosphere",
+          "Asthenosphere"
+        ]
+      },
+      {
+        "misconception": "Landforms are permanent and never change once they are formed.",
+        "diagnostic_question": "True or False: Once a fold mountain like the Himalaya is formed by colliding plates, it stops changing completely.",
+        "severity": "low",
+        "remedial_actions": [
+          "Explain the continuous cycle where internal forces build up landforms and external forces (weathering and erosion) constantly wear them down.",
+          "Show a worked example of how rivers erode mountains over millions of years."
+        ],
+        "related_concepts": [
+          "Landform",
+          "Weathering",
+          "Erosion"
+        ]
+      }
+    ],
+    "summary": "This gap analysis addresses typical misunderstandings in Class 9 geomorphology, focusing primarily on the critical distinction between weathering and erosion, the physical nature of the asthenosphere, and the dynamic permanence of landforms."
+  },
+  "validation": {
+    "schema_check": {
+      "name": "schema_check",
+      "status": "pass",
+      "details": "All required stage outputs are present and valid",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "groundedness_check": {
+      "name": "groundedness_check",
+      "status": "pass",
+      "details": "avg=0.775; assessments=0.746, period_1=0.771, period_2=0.807; judge_passed=True; judge=All facts, definitions, and concepts in the generated content (such as the theory of plate tectonics by W.J. Morgan, the definitions of landforms, lithosphere, asthenosphere, the three plate boundaries, mantle convection currents, weathering, and erosion) are fully supported by the provided source chunks.",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "consistency_check": {
+      "name": "consistency_check",
+      "status": "pass",
+      "details": "Period numbers and concept references are consistent",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "overall_passed": true,
+    "grounding_scores": {
+      "overall": 1.0
+    }
+  },
+  "metadata": {
+    "parser_route": "pymupdf+gemini_multimodal",
+    "pdf_lesson-plan": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\8aaff7d3-6954-4ba0-b85e-39e07a799712\\lesson-plan.pdf",
+    "pdf_teacher-guide": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\8aaff7d3-6954-4ba0-b85e-39e07a799712\\teacher-guide.pdf",
+    "pdf_assessment-book": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\8aaff7d3-6954-4ba0-b85e-39e07a799712\\assessment-book.pdf"
+  }
+}

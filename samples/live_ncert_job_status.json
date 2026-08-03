@@ -1,0 +1,77 @@
+{
+  "job": {
+    "id": "8aaff7d3-6954-4ba0-b85e-39e07a799712",
+    "status": "completed",
+    "current_stage": "publish",
+    "progress_pct": 100.0,
+    "error": "",
+    "created_at": "2026-08-03 09:48:07.243370+00:00",
+    "updated_at": "2026-08-03 09:50:38.741577+00:00"
+  },
+  "elapsed_s": 80.18804502487183,
+  "stage_outputs": [
+    {
+      "stage_name": "document_intelligence",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "educational_classification",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "knowledge_extraction",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "teaching_planner",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "classroom_content",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "activity_generation",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "assessment_generation",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "gap_analysis",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    },
+    {
+      "stage_name": "validation",
+      "model_used": null,
+      "latency_ms": null,
+      "token_usage": null,
+      "created_at": "2026-08-03 09:50:40.235151+00:00"
+    }
+  ]
+}

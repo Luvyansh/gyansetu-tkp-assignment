@@ -1,0 +1,100 @@
+{
+  "env": {
+    "gemini_api_key_present": true,
+    "groq_api_key_present": true,
+    "faithfulness_threshold": 0.85,
+    "embedding_dim": 384
+  },
+  "ncert_geography": {
+    "job_id": "8aaff7d3-6954-4ba0-b85e-39e07a799712",
+    "document_id": "e7efd006-7fb8-44cd-9e81-8176bbf5850c",
+    "status": "completed",
+    "stage": "publish",
+    "progress_pct": 100,
+    "wall_clock_s": 151.5,
+    "created_at_utc": "2026-08-03T09:48:07Z",
+    "completed_at_utc": "2026-08-03T09:50:38Z",
+    "classification": {
+      "subject": "Geography",
+      "grade": "Class 9",
+      "topic": "Shaping of the Earth's Surface",
+      "category": "STEM"
+    },
+    "periods": 2,
+    "validation": {
+      "overall_passed": true,
+      "grounding_overall": 1.0,
+      "groundedness_avg_cosine": 0.775,
+      "judge_passed": true
+    },
+    "provider_usage_observed": {
+      "gemini_embed_content": 0,
+      "flash_full": 0,
+      "flash_lite_generate_cached_stages": 8,
+      "flash_lite_estimate_with_multimodal_and_judge": 10,
+      "groq_fallback": 0,
+      "local_minilm_text_units": 76,
+      "knowledge_chunks_embedded": 73,
+      "rpm_throttle_events": 2,
+      "rpm_wait_s": [28.28, 6.97]
+    },
+    "vs_mocked_projection": {
+      "note": "Mocked NCERT cost test assumes LIVE_PERIODS=4 and a validation retry round (>=19 Flash-Lite). Live planner produced 2 periods and validation passed on first try.",
+      "mocked": {
+        "gemini_embed": 0,
+        "flash": 0,
+        "flash_lite_min": 19,
+        "local_embed_text_units_approx": 77
+      },
+      "live": {
+        "gemini_embed": 0,
+        "flash": 0,
+        "flash_lite_approx": 10,
+        "local_embed_text_units": 76
+      }
+    },
+    "artifacts": {
+      "tkp": "samples/tkp_sample_geography.json",
+      "lesson_plan_pdf": "samples/tkp_sample_geography_lesson-plan.pdf",
+      "teacher_guide_pdf": "samples/tkp_sample_geography_teacher-guide.pdf",
+      "assessment_book_pdf": "samples/tkp_sample_geography_assessment-book.pdf"
+    }
+  },
+  "humanities": {
+    "job_id": "de96d787-40c7-4372-89ed-fb64faeda57e",
+    "document_id": "00d224b7-9bfb-434c-b209-3d9b3e431041",
+    "status": "completed",
+    "stage": "publish",
+    "progress_pct": 100,
+    "wall_clock_s": 60,
+    "created_at_utc": "2026-08-03T09:52:30Z",
+    "completed_at_utc": "2026-08-03T09:53:30Z",
+    "classification": {
+      "subject": "History",
+      "grade": "Class 9",
+      "topic": "The French Revolution"
+    },
+    "periods": 2,
+    "validation_grounding_overall": 1.0,
+    "provider_usage_observed": {
+      "flash_full": 0,
+      "groq_fallback": 0,
+      "local_minilm_text_units": 5,
+      "rpm_throttle_events": 1,
+      "rpm_wait_s": [43.72]
+    },
+    "artifacts": {
+      "tkp": "samples/tkp_sample_humanities.json",
+      "lesson_plan_pdf": "samples/tkp_sample_humanities_lesson-plan.pdf",
+      "teacher_guide_pdf": "samples/tkp_sample_humanities_teacher-guide.pdf",
+      "assessment_book_pdf": "samples/tkp_sample_humanities_assessment-book.pdf"
+    }
+  },
+  "pdf_export_api": {
+    "route": "/api/v1/jobs/{id}/export/{artifact}",
+    "frontend_client": "frontend/api_client.py download_export",
+    "geography_exports_http_200": true,
+    "humanities_exports_http_200": true,
+    "pdf_magic_ok": true
+  }
+}
