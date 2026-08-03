@@ -5,6 +5,59 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] Real NCERT chapter API-cost measurement (mocked clients)
+
+**Document:** `test_assets/sample_ncert.pdf` — "Shaping of the Earth's Surface"
+(NCERT Geography, **26 pages**, ~21 MB, diagram-heavy). This is the file behind
+today's 984/1000 daily embed burn — not the tiny golden samples / guessed
+40-chunk proxy.
+
+### Stage 1 (real parse — no estimate)
+| Metric | Value |
+|---|---|
+| pages | **26** |
+| chars / words | 32,147 / **4,961** |
+| **chunks (500/50)** | **72** (was guessed ~40) |
+| image_count (heuristics) | **118** |
+| figures extracted | 137 |
+| chars_per_page | **1243.7** (text-rich despite diagrams) |
+| route `unsure` / `text_with_diagrams` | **multimodal** |
+| route `mostly_text` | text |
+| multimodal pages if triggered | **5** (code takes `range(min(pages,5))` — first 5 pages, **not** image-selective) |
+
+### Full pipeline + 1 forced validation retry (4 periods, as in live logs)
+| API | Count | Notes |
+|---|---:|---|
+| `embed_content` calls | **4** | batches `[32, 32, 8, 5]` |
+| embed **text-units** | **77** | Stage3=72 + groundedness queries=5; retry queries **cache-hit 0** |
+| same-doc pre-fix embeds | **802** | `72 + 2×5×73` |
+| vs today's live **984** | **12.8× fewer** | 77/984 ≈ **7.8%** of that burn |
+| `generate` Flash (`gemini-3.5-flash`) | **4** | multimodal(1)+knowledge(1)+teaching×2 |
+| `generate` Flash-Lite | **15** | class(1)+classroom×8+activity×2+assess×2+gap×2 |
+| multimodal pages billed | **5** / 1 call | |
+
+Projected free-tier runs/day at these costs: embed ~**12**, Flash-Lite ~**33**,
+**Flash ~5** ← binding constraint (20 RPD).
+
+Embeds are now comfortably under the 150–200/run band (**77**). The remaining
+risk on this document is **Flash 20/day**, not embeds.
+
+### Concrete levers (priority order)
+1. **Flash budget:** move `knowledge_extraction` / `teaching_planner` /
+   `multimodal_fallback` toward Flash-Lite where quality allows, or skip
+   multimodal when `chars_per_page` is already high (this chapter is 1243 cpp —
+   text extract is sufficient; `image_count>=2` alone should not force multimodal).
+2. **Selective multimodal pages:** replace blind `range(min(n,5))` with pages
+   that are image-heavy / text-sparse; cap pages harder (e.g. 2) for free tier.
+3. **Chunk cap / coarser chunking** for large docs (e.g. max 40–48 chunks or
+   size 800–1000) — optional further embed headroom; not required at 77/run.
+4. **Near-duplicate chunk collapse** before embed (low priority given cache +
+   reuse already landed).
+
+**Status:** Measured via `test_ncert_api_costs.py` — no live quota spent
+
+---
+
 ## [2026-08-03] Embed-count proof (mocked embed_content counter — no live quota)
 
 **Method:** Integration test

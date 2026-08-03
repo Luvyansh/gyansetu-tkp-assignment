@@ -1,0 +1,2 @@
+# Local-only large fixtures (gitignored `*.pdf`).
+# Place `sample_ncert.pdf` here for `test_ncert_api_costs.py`.
