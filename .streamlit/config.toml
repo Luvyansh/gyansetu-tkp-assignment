@@ -1,37 +1,37 @@
 [theme]
 base = "light"
-primaryColor = "#3F5A4E"
-backgroundColor = "#F7F5F0"
+primaryColor = "#533AFD"
+backgroundColor = "#F6F9FC"
 secondaryBackgroundColor = "#FFFFFF"
-textColor = "#1C1917"
-linkColor = "#3F5A4E"
-borderColor = "#D0CBC2"
-codeBackgroundColor = "#EEEAE2"
-codeTextColor = "#1C1917"
-font = "DM Sans:https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
-headingFont = "Literata:https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap"
+textColor = "#0D253D"
+linkColor = "#533AFD"
+borderColor = "#E3E8EE"
+codeBackgroundColor = "#F1F4F8"
+codeTextColor = "#0D253D"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
 codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
 baseFontSize = 15
-baseRadius = "0.5rem"
-buttonRadius = "0.5rem"
+baseRadius = "0.75rem"
+buttonRadius = "9999px"
 showWidgetBorder = true
 showSidebarBorder = true
 linkUnderline = false
 
 # Semantic status colors (readable on light backgrounds)
-redColor = "#9B2C2C"
-orangeColor = "#9A7B12"
-yellowColor = "#C4A020"
-greenColor = "#3F5A4E"
-blueColor = "#3D6B8A"
-grayColor = "#57534E"
+redColor = "#B4235A"
+orangeColor = "#9B6829"
+yellowColor = "#9B6829"
+greenColor = "#176B5C"
+blueColor = "#4434D4"
+grayColor = "#64718D"
 
 [theme.sidebar]
-backgroundColor = "#1C1917"
-secondaryBackgroundColor = "#292524"
-textColor = "#F7F5F0"
-borderColor = "#3F3A36"
-primaryColor = "#8FA99B"
+backgroundColor = "#1C1E54"
+secondaryBackgroundColor = "#272968"
+textColor = "#FFFFFF"
+borderColor = "#4A4D86"
+primaryColor = "#B9B9F9"
 
 [client]
 toolbarMode = "minimal"

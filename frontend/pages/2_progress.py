@@ -36,7 +36,6 @@ def _stage_index(stage: str | None) -> int:
     if not stage:
         return -1
     key = stage.strip().lower().replace(" ", "_")
-    # Sentinels are not pipeline stages — never fuzzy-match them onto index 0.
     if key in {"pending", "queued", "failed", "error", "unknown"}:
         return -1
     if key in _STAGE_ORDER:
@@ -55,14 +54,10 @@ def _stepper_html(active_stage: str | None, status: str) -> str:
         active_idx = len(PIPELINE_STAGES)
     rows: list[str] = []
     for i, (_key, label) in enumerate(PIPELINE_STAGES):
-        # Only pin "failed" onto a *known* stage index — never coerce
-        # unknown/error/failed sentinels onto Document Intelligence (index 0).
         if status == "failed" and active_idx >= 0 and i == active_idx:
             state = "is-active"
             meta = "failed"
         elif status == "failed" and active_idx < 0:
-            # No known stage to pin — leave all steps neutral rather than
-            # inventing a Document Intelligence failure.
             state = "is-pending"
             meta = "waiting"
         elif i < active_idx or status == "completed":
@@ -74,13 +69,14 @@ def _stepper_html(active_stage: str | None, status: str) -> str:
         else:
             state = "is-pending"
             meta = "waiting"
+        current = ' aria-current="step"' if state == "is-active" else ""
         rows.append(
-            f'<div class="gs-step {state}">'
-            f'<div class="gs-step-idx">{i + 1}</div>'
+            f'<div class="gs-step {state}"{current}>'
+            f'<div class="gs-step-idx gs-tabular">{i + 1:02d}</div>'
             f'<div class="gs-step-label">{sanitize_html(label)}</div>'
             f'<div class="gs-step-meta">{meta}</div></div>'
         )
-    return '<div class="gs-stepper">' + "".join(rows) + "</div>"
+    return '<div class="gs-stepper" aria-label="TKP pipeline stages">' + "".join(rows) + "</div>"
 
 
 def _apply_event(event: dict) -> None:
@@ -104,20 +100,24 @@ def render() -> None:
     inject_theme()
     job_id = st.session_state.get("job_id")
     if not job_id:
-        st.warning("No active job. Upload a document first.")
-        if st.button("Back to upload"):
+        st.markdown(
+            '<div class="gs-empty-state"><h2>No active package</h2>'
+            '<p>Upload a source chapter first, then we’ll trace every stage '
+            'from parsing to publish.</p></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("Back to upload", type="primary"):
             st.session_state.view = "upload"
             st.rerun()
         return
 
     st.markdown(
-        '<p class="gs-display" style="font-size:1.75rem;margin:0 0 0.25rem 0;">'
-        "Building your package</p>",
+        f'<div class="gs-progress-shell"><div class="gs-progress-header">'
+        '<p class="gs-eyebrow">Step 02 / 03 · grounded generation</p>'
+        '<h1>Building your classroom package</h1>'
+        f'<p>Job <span class="gs-tabular">{sanitize_html(str(job_id)[:8])}</span>… · '
+        f'{sanitize_html(st.session_state.get("upload_filename") or "document")}</p></div></div>',
         unsafe_allow_html=True,
-    )
-    st.caption(
-        f"Job {sanitize_html(str(job_id)[:8])}… · "
-        f"{sanitize_html(st.session_state.get('upload_filename') or 'document')}"
     )
 
     progress_box = st.empty()
@@ -134,15 +134,15 @@ def render() -> None:
 
     if status in {"completed", "failed"}:
         if status == "completed":
-            st.success("Pipeline complete.")
-            if st.button("Open TKP review", type="primary"):
+            st.success("Package ready to review.")
+            if st.button("Open classroom package", type="primary"):
                 st.session_state.view = "review"
                 st.rerun()
         else:
-            st.error(st.session_state.get("job_error") or "Pipeline failed.")
+            st.error(st.session_state.get("job_error") or "The package could not be generated.")
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("Try again", type="primary"):
+                if st.button("Retry generation", type="primary"):
                     try:
                         get_client().start_job(str(job_id))
                         st.session_state.job_status = "pending"
@@ -153,13 +153,13 @@ def render() -> None:
                     except httpx.HTTPError as exc:
                         st.error(f"Could not restart: {exc}")
             with c2:
-                if st.button("New upload"):
+                if st.button("Start a new upload"):
                     st.session_state.view = "upload"
                     st.rerun()
         return
 
     with loader_box:
-        show_loading(key="progress_lottie", height=160)
+        show_loading(key="progress_loader")
 
     client = get_client()
     terminal = {"completed", "failed"}
@@ -176,11 +176,14 @@ def render() -> None:
             )
             stepper_box.markdown(_stepper_html(stage, status), unsafe_allow_html=True)
             if event.get("message"):
-                message_box.caption(sanitize_html(str(event["message"])))
+                message_box.markdown(
+                    f'<p class="gs-progress-message">{sanitize_html(str(event["message"]))}</p>',
+                    unsafe_allow_html=True,
+                )
             if status in terminal or event.get("_event") == "done":
                 break
     except httpx.HTTPError:
-        message_box.info("Live stream unavailable — polling job status…")
+        message_box.info("Live stream unavailable — polling the package status instead.")
         for _ in range(600):
             try:
                 job = client.get_job(str(job_id))
@@ -213,13 +216,13 @@ def render() -> None:
         st.session_state.view = "review"
         st.rerun()
     elif status == "failed":
-        st.error(st.session_state.get("job_error") or "Pipeline failed.")
+        st.error(st.session_state.get("job_error") or "The package could not be generated.")
         if st.button("Back to upload"):
             st.session_state.view = "upload"
             st.rerun()
     else:
         st.info("Still running — refresh if the view stalls.")
-        if st.button("Refresh status"):
+        if st.button("Refresh package status"):
             st.rerun()
 
 

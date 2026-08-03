@@ -1,4 +1,4 @@
-"""TKP review — tabs, downloads, optional eval summary."""
+"""TKP review — exports, evaluation summary, and classroom package viewer."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ import httpx
 import streamlit as st
 from backend.app.security.sanitize import sanitize_html
 from frontend.api_client import get_client
+from frontend.components.animations import show_loading
 from frontend.components.tkp_viewer import render_tkp
 
 _PDF_ARTIFACTS = [
@@ -30,47 +31,64 @@ def render() -> None:
     inject_theme()
     job_id = st.session_state.get("job_id")
     if not job_id:
-        st.warning("No job selected. Upload a document to generate a TKP.")
-        if st.button("Go to upload"):
+        st.markdown(
+            '<div class="gs-empty-state"><h2>No package selected</h2>'
+            '<p>Upload a source chapter to generate a grounded classroom '
+            'package before reviewing it.</p></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("Go to upload", type="primary"):
             st.session_state.view = "upload"
             st.rerun()
         return
 
     st.markdown(
-        '<p class="gs-display" style="font-size:1.75rem;margin:0 0 0.25rem 0;">Review</p>',
+        '<div class="gs-progress-header"><p class="gs-eyebrow">'
+        'Step 03 / 03 · inspect and export</p>'
+        '<h1 class="gs-page-title">Your classroom package, ready to inspect.</h1>'
+        '<p class="gs-muted">Review the grounded output, check the evidence, '
+        'and export the materials you need.</p></div>',
         unsafe_allow_html=True,
     )
-    st.caption("Inspect the package, download JSON or PDFs, then iterate.")
 
     client = get_client()
     tkp = st.session_state.get("tkp")
 
     if not tkp:
-        with st.spinner("Loading Teacher Knowledge Package…"):
-            try:
-                tkp = client.get_tkp(str(job_id))
-                st.session_state.tkp = tkp
-            except httpx.HTTPStatusError as exc:
-                if exc.response.status_code == 404:
-                    st.info("TKP is not ready yet. Return to progress and wait for publish.")
-                    if st.button("Back to progress"):
-                        st.session_state.view = "progress"
-                        st.rerun()
-                    return
-                st.error(f"Failed to load TKP ({exc.response.status_code})")
+        loading_slot = st.empty()
+        with loading_slot.container():
+            show_loading(key="review_loader")
+        try:
+            tkp = client.get_tkp(str(job_id))
+            st.session_state.tkp = tkp
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                st.info(
+                    "The classroom package is not ready yet. Return to progress "
+                    "and wait for publish."
+                )
+                if st.button("Back to progress"):
+                    st.session_state.view = "progress"
+                    st.rerun()
                 return
-            except httpx.HTTPError as exc:
-                st.error(f"API error: {exc}")
-                return
+            st.error(f"Failed to load the package ({exc.response.status_code}).")
+            return
+        except httpx.HTTPError as exc:
+            st.error(f"API error: {exc}")
+            return
+        finally:
+            loading_slot.empty()
 
-    with st.container(border=True):
+    with st.container(border=True, key="gs_export_card"):
         st.markdown(
-            '<p class="gs-panel-title">Exports</p>',
+            '<div class="gs-upload-header"><div><p class="gs-eyebrow">Exports</p>'
+            '<h2>Take the package into your next lesson</h2></div>'
+            '<span class="gs-step-tag">JSON + PDF</span></div>',
             unsafe_allow_html=True,
         )
         with st.container(horizontal=True, gap="small"):
             st.download_button(
-                "Download JSON",
+                "Download package JSON",
                 data=json.dumps(tkp, indent=2, default=str),
                 file_name=f"tkp-{str(job_id)[:8]}.json",
                 mime="application/json",
@@ -92,7 +110,7 @@ def render() -> None:
                 except httpx.HTTPError:
                     st.caption(f"{label} unavailable")
 
-    with st.expander("Evaluation / grounding report", expanded=False):
+    with st.expander("Evaluation and grounding report", expanded=False):
         try:
             report = client.get_eval_report(str(job_id))
             faith = report.get("faithfulness")
@@ -101,18 +119,23 @@ def render() -> None:
             scores = report.get("grounding_scores") or {}
             if scores:
                 st.markdown("**Grounding scores**")
-                for k, v in scores.items():
-                    st.markdown(f"- `{sanitize_html(str(k))}`: {float(v):.2f}")
+                for key, value in scores.items():
+                    st.markdown(
+                        f'<p class="gs-muted"><span class="gs-tabular">'
+                        f'{sanitize_html(str(key))}</span> · '
+                        f'<strong class="gs-tabular">{float(value):.2f}</strong></p>',
+                        unsafe_allow_html=True,
+                    )
             details = report.get("details") or {}
             if details:
                 st.json(details)
         except httpx.HTTPError:
-            st.caption("Eval report not available for this job.")
+            st.caption("Evaluation report not available for this job.")
 
     render_tkp(tkp)
 
     with st.container(horizontal=True, gap="small"):
-        if st.button("New upload", icon=":material/upload_file:", width="content"):
+        if st.button("Start a new upload", icon=":material/upload_file:", width="content"):
             for key in (
                 "job_id",
                 "document_id",
@@ -126,7 +149,7 @@ def render() -> None:
                 st.session_state.pop(key, None)
             st.session_state.view = "upload"
             st.rerun()
-        if st.button("View progress", icon=":material/hourglass_top:", width="content"):
+        if st.button("View package progress", icon=":material/hourglass_top:", width="content"):
             st.session_state.view = "progress"
             st.rerun()
 

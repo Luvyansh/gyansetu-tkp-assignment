@@ -64,7 +64,7 @@ def _init_state() -> None:
 
 
 def _render_nav() -> None:
-    """Top step nav — content-sized buttons in a horizontal row (no mid-word wrap)."""
+    """Render the compact pill navigation shared by all three app views."""
     has_job = bool(st.session_state.get("job_id"))
     current = st.session_state.view
 
@@ -75,7 +75,11 @@ def _render_nav() -> None:
         gap="small",
         key="gs_nav_bar",
     ):
-        st.markdown("**GyanSetu TKP**")
+        st.markdown(
+            '<div class="gs-nav-brand"><span class="gs-nav-mark">G</span>'
+            'GyanSetu <span>TKP</span></div>',
+            unsafe_allow_html=True,
+        )
         for key, label, icon in _NAV:
             disabled = key in {"progress", "review"} and not has_job
             clicked = st.button(
