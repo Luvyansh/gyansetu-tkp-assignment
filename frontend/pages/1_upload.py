@@ -59,103 +59,102 @@ def render(*, show_hero: bool = True) -> None:
             unsafe_allow_html=True,
         )
 
-    st.markdown('<div class="gs-panel">', unsafe_allow_html=True)
-    st.markdown(
-        '<p class="gs-panel-title">Upload your source chapter</p>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<p class="gs-dropzone-hint">PDF, DOCX, or PPTX · max 25 MB</p>',
-        unsafe_allow_html=True,
-    )
-
-    uploaded = st.file_uploader(
-        "Drag & drop or browse",
-        type=["pdf", "docx", "pptx"],
-        label_visibility="collapsed",
-        key="gs_uploader",
-    )
-
-    hint_label = st.radio(
-        "Document type hint",
-        options=list(DOC_TYPE_HINTS.keys()),
-        index=len(DOC_TYPE_HINTS) - 1,
-        horizontal=True,
-        help="Helps the parser choose the best extraction route.",
-    )
-    hint = DOC_TYPE_HINTS[hint_label]
-
-    validation_msg = ""
-    file_bytes: bytes | None = None
-    filename = ""
-
-    if uploaded is not None:
-        filename = uploaded.name or "upload.bin"
-        ext = Path(filename).suffix.lower()
-        file_bytes = uploaded.getvalue()
-        if ext not in _ALLOWED_EXT:
-            validation_msg = f"Unsupported type `{ext}`. Use PDF, DOCX, or PPTX."
-        elif len(file_bytes) == 0:
-            validation_msg = "The file is empty."
-        elif len(file_bytes) > _MAX_BYTES:
-            validation_msg = "File exceeds the 25 MB upload limit."
-        else:
-            st.success(f"Ready: **{filename}** ({len(file_bytes) / 1024:.1f} KB)")
-
-    if validation_msg:
-        st.error(validation_msg)
-
-    col_a, col_b = st.columns([1, 2])
-    with col_a:
-        generate = st.button(
-            "Generate TKP",
-            type="primary",
-            use_container_width=True,
-            disabled=file_bytes is None or bool(validation_msg),
+    with st.container(border=True):
+        st.markdown(
+            '<p class="gs-panel-title">Upload your source chapter</p>',
+            unsafe_allow_html=True,
         )
-    with col_b:
-        if st.session_state.get("job_id"):
-            if st.button("Resume last job", use_container_width=True):
-                st.session_state.view = "progress"
-                st.rerun()
+        st.markdown(
+            '<p class="gs-dropzone-hint">PDF, DOCX, or PPTX · max 25 MB</p>',
+            unsafe_allow_html=True,
+        )
 
-    if generate and file_bytes is not None and not validation_msg:
-        client = get_client()
-        with st.spinner("Uploading and starting the pipeline…"):
-            try:
-                result = client.upload_document(file_bytes, filename, hint=hint)
-            except httpx.HTTPStatusError as exc:
-                detail = ""
+        uploaded = st.file_uploader(
+            "Chapter file",
+            type=["pdf", "docx", "pptx"],
+            label_visibility="collapsed",
+            key="gs_uploader",
+        )
+
+        hint_label = st.radio(
+            "Document type hint",
+            options=list(DOC_TYPE_HINTS.keys()),
+            index=len(DOC_TYPE_HINTS) - 1,
+            horizontal=True,
+            help="Helps the parser choose the best extraction route.",
+        )
+        hint = DOC_TYPE_HINTS[hint_label]
+
+        validation_msg = ""
+        file_bytes: bytes | None = None
+        filename = ""
+
+        if uploaded is not None:
+            filename = uploaded.name or "upload.bin"
+            ext = Path(filename).suffix.lower()
+            file_bytes = uploaded.getvalue()
+            if ext not in _ALLOWED_EXT:
+                validation_msg = f"Unsupported type `{ext}`. Use PDF, DOCX, or PPTX."
+            elif len(file_bytes) == 0:
+                validation_msg = "The file is empty."
+            elif len(file_bytes) > _MAX_BYTES:
+                validation_msg = "File exceeds the 25 MB upload limit."
+            else:
+                st.success(f"Ready: **{filename}** ({len(file_bytes) / 1024:.1f} KB)")
+
+        if validation_msg:
+            st.error(validation_msg)
+
+        with st.container(horizontal=True, gap="small"):
+            generate = st.button(
+                "Generate TKP",
+                type="primary",
+                icon=":material/play_arrow:",
+                width="content",
+                disabled=file_bytes is None or bool(validation_msg),
+            )
+            if st.session_state.get("job_id"):
+                if st.button(
+                    "Resume last job",
+                    icon=":material/history:",
+                    width="content",
+                ):
+                    st.session_state.view = "progress"
+                    st.rerun()
+
+        if generate and file_bytes is not None and not validation_msg:
+            client = get_client()
+            with st.spinner("Uploading and starting the pipeline…"):
                 try:
-                    detail = exc.response.json().get("detail", "")
-                except Exception:
-                    detail = exc.response.text[:300]
-                st.error(f"Upload failed ({exc.response.status_code}): {detail}")
-                st.markdown("</div>", unsafe_allow_html=True)
-                return
-            except httpx.HTTPError as exc:
-                st.error(f"Cannot reach the API: {exc}")
-                st.markdown("</div>", unsafe_allow_html=True)
-                return
+                    result = client.upload_document(file_bytes, filename, hint=hint)
+                except httpx.HTTPStatusError as exc:
+                    detail = ""
+                    try:
+                        detail = exc.response.json().get("detail", "")
+                    except Exception:
+                        detail = exc.response.text[:300]
+                    st.error(f"Upload failed ({exc.response.status_code}): {detail}")
+                    return
+                except httpx.HTTPError as exc:
+                    st.error(f"Cannot reach the API: {exc}")
+                    return
 
-        st.session_state.document_id = str(result.get("document_id", ""))
-        st.session_state.job_id = str(result.get("job_id", ""))
-        st.session_state.tkp = None
-        st.session_state.progress_pct = 0.0
-        st.session_state.current_stage = "pending"
-        st.session_state.job_status = "pending"
-        st.session_state.job_error = None
-        st.session_state.upload_filename = filename
-        st.session_state.view = "progress"
-        st.rerun()
+            st.session_state.document_id = str(result.get("document_id", ""))
+            st.session_state.job_id = str(result.get("job_id", ""))
+            st.session_state.tkp = None
+            st.session_state.progress_pct = 0.0
+            st.session_state.current_stage = "pending"
+            st.session_state.job_status = "pending"
+            st.session_state.job_error = None
+            st.session_state.upload_filename = filename
+            st.session_state.view = "progress"
+            st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown(
         '<p class="gs-footer-note">GyanSetu TKP · classroom packages from source chapters</p>',
         unsafe_allow_html=True,
     )
 
 
-# Multipage fallback when opened via Streamlit pages sidebar
 if not globals().get("_IMPORTED_BY_APP"):
     render()
