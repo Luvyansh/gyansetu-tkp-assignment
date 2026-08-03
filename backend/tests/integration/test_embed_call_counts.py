@@ -1,13 +1,11 @@
-"""Prove post-fix embed_content call reduction with a counting Gemini client.
+"""Prove local embeddings replace Gemini embed_content (zero external embed calls).
 
-No live API calls — ``embed_content`` is mocked but invoked through the real
-``GeminiClient.embed`` batching path so call counts and text-unit weights match
-production RPM accounting.
+No live API calls — ``embed_texts`` is mocked/counted through the real router
+cache path. Asserts ``GeminiClient.embed`` / ``embed_content`` are never touched.
 """
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -20,7 +18,7 @@ from backend.app.config import get_settings
 from backend.app.graph.build_graph import run_pipeline
 from backend.app.graph.nodes.helpers import chunk_text
 from backend.app.llm.base import LLMResponse
-from backend.app.llm.gemini_client import DEFAULT_EMBED, GeminiClient
+from backend.app.llm.local_embeddings import LOCAL_EMBED_DIM, LOCAL_EMBED_MODEL
 from backend.app.llm.router import LLMRouter
 from backend.app.parsing.pdf_text import extract_pdf_text
 from backend.app.schemas.validation import CheckStatus, ValidationCheck
@@ -30,59 +28,33 @@ GOLDEN_DIR = Path(__file__).resolve().parents[3] / "evals" / "golden_dataset"
 STEM_GOLDEN = GOLDEN_DIR / "stem_sample.pdf"
 HUMANITIES_GOLDEN = GOLDEN_DIR / "humanities_sample.pdf"
 
-# Observed free-tier daily meter when the incomplete Stage-9 job failed today.
 PRE_FIX_LIVE_TEXT_UNITS = 984
-# Comfortable free-tier budget for multiple full runs per day.
 TARGET_MAX_TEXT_UNITS = 200
 
 
 @dataclass
-class EmbedContentCounter:
-    """Counts real ``embed_content`` invocations after the embed cache."""
+class LocalEmbedCounter:
+    """Counts local ``embed_texts`` invocations after the embed cache."""
 
     calls: int = 0
     text_units: int = 0
     batch_sizes: list[int] = field(default_factory=list)
 
 
-def _mock_embed_response(n: int) -> MagicMock:
-    embeddings = []
-    for i in range(n):
-        emb = MagicMock()
-        emb.values = [float((i + 1) % 7) / 7.0] * 768
-        embeddings.append(emb)
-    resp = MagicMock()
-    resp.embeddings = embeddings
-    resp.embedding = None
-    resp.values = None
-    return resp
-
-
 def _build_counting_router(
-    counter: EmbedContentCounter,
+    counter: LocalEmbedCounter,
     *,
     embed_store: dict[str, list[float]],
-) -> LLMRouter:
-    """LLMRouter with canned generate + real embed path over a counting Gemini client."""
+) -> tuple[LLMRouter, MagicMock]:
+    """LLMRouter with canned generate + counting local embed path."""
     settings = get_settings()
-    gemini = GeminiClient.__new__(GeminiClient)
-    aio_models = MagicMock()
-
-    async def _embed_content(**kwargs: Any) -> MagicMock:
-        contents = kwargs.get("contents")
-        if isinstance(contents, list):
-            n = len(contents)
-        elif contents is None:
-            n = 0
-        else:
-            n = 1
-        counter.calls += 1
-        counter.text_units += n
-        counter.batch_sizes.append(n)
-        return _mock_embed_response(n)
-
-    aio_models.embed_content = AsyncMock(side_effect=_embed_content)
+    gemini = MagicMock()
+    gemini.embed = AsyncMock(side_effect=AssertionError("Gemini embed must not be called"))
     gemini._client = MagicMock()
+    aio_models = MagicMock()
+    aio_models.embed_content = AsyncMock(
+        side_effect=AssertionError("embed_content must not be called")
+    )
     gemini._client.aio.models = aio_models
 
     router = LLMRouter(settings=settings, gemini=gemini, groq=None)
@@ -105,6 +77,12 @@ def _build_counting_router(
 
     router.generate = AsyncMock(side_effect=_generate)  # type: ignore[method-assign]
 
+    async def _local_embed(texts: list[str]) -> list[list[float]]:
+        counter.calls += 1
+        counter.text_units += len(texts)
+        counter.batch_sizes.append(len(texts))
+        return [[float((i + 1) % 7) / 7.0] * LOCAL_EMBED_DIM for i in range(len(texts))]
+
     async def _get_cached(_session: Any, hashes: list[str]) -> dict[str, list[float]]:
         return {h: embed_store[h] for h in hashes if h in embed_store}
 
@@ -112,9 +90,10 @@ def _build_counting_router(
         for content_hash, vector in items:
             embed_store[content_hash] = vector
 
+    router._test_local_embed = _local_embed  # type: ignore[attr-defined]
     router._test_get_cached = _get_cached  # type: ignore[attr-defined]
     router._test_put_cached = _put_cached  # type: ignore[attr-defined]
-    return router
+    return router, aio_models
 
 
 def _initial_state(file_path: str, *, max_retries: int = 2) -> dict[str, Any]:
@@ -161,7 +140,6 @@ def _structure_from_pdf(path: Path) -> Any:
 
 
 def _live_scale_structure(base_path: Path, *, target_chunks: int = 40) -> Any:
-    """Repeat golden text until chunking matches live STEM upload scale (~40)."""
     base = extract_pdf_text(base_path)
     text = (base.full_text or "").strip() or "Newton force inertia F=ma. "
     expanded = text
@@ -176,7 +154,6 @@ def _live_scale_structure(base_path: Path, *, target_chunks: int = 40) -> Any:
 
 
 def _pre_fix_text_units(*, chunks: int, queries_per_validation: int, validations: int) -> int:
-    """Old groundedness: embed [query, *chunks] once per scored text, every validation."""
     return chunks + validations * queries_per_validation * (1 + chunks)
 
 
@@ -191,13 +168,6 @@ def _session_factory() -> MagicMock:
     cm.__aenter__ = AsyncMock(return_value=session)
     cm.__aexit__ = AsyncMock(return_value=None)
     return MagicMock(return_value=cm)
-
-
-def _rate_limit_cm() -> MagicMock:
-    rate_cm = MagicMock()
-    rate_cm.__aenter__ = AsyncMock(return_value=None)
-    rate_cm.__aexit__ = AsyncMock(return_value=None)
-    return rate_cm
 
 
 NODE_SESSION_TARGETS = [
@@ -219,18 +189,17 @@ async def run_counted_pipeline(
     file_path: str,
     force_one_retry: bool = True,
     always_fail: bool = False,
-) -> tuple[EmbedContentCounter, dict[str, Any], int, int]:
-    """Full graph with counting embed_content. Returns counter, state, chunks, val_rounds."""
-    counter = EmbedContentCounter()
+) -> tuple[LocalEmbedCounter, dict[str, Any], int, int, MagicMock]:
+    counter = LocalEmbedCounter()
     embed_store: dict[str, list[float]] = {}
-    router = _build_counting_router(counter, embed_store=embed_store)
+    router, aio_models = _build_counting_router(counter, embed_store=embed_store)
     validation_rounds = {"n": 0}
 
     async def _groundedness_gate(state: dict[str, Any]) -> ValidationCheck:
         from backend.app.validation.groundedness import check_groundedness as real_check
 
         validation_rounds["n"] += 1
-        await real_check(state)  # count embeds even when status is overridden
+        await real_check(state)
         if always_fail or (force_one_retry and validation_rounds["n"] == 1):
             return ValidationCheck(
                 name="groundedness_check",
@@ -248,7 +217,6 @@ async def run_counted_pipeline(
         )
 
     session_factory = _session_factory()
-    rate_cm = _rate_limit_cm()
     targets = list(NODE_SESSION_TARGETS)
     if always_fail:
         targets = [t for t in targets if "n10_publish" not in t]
@@ -272,7 +240,10 @@ async def run_counted_pipeline(
                 new_callable=AsyncMock,
                 return_value={"lesson-plan": "/tmp/lp.pdf"},
             ),
-            patch("backend.app.llm.gemini_client.rate_limited", return_value=rate_cm),
+            patch(
+                "backend.app.llm.router.embed_texts",
+                side_effect=router._test_local_embed,  # type: ignore[attr-defined]
+            ),
             patch(
                 "backend.app.llm.router.get_cached_embeddings",
                 side_effect=router._test_get_cached,  # type: ignore[attr-defined]
@@ -341,7 +312,7 @@ async def run_counted_pipeline(
             p.stop()
 
     chunk_count = len(chunk_text(structure.full_text or "", size=500, overlap=50))
-    return counter, final, chunk_count, validation_rounds["n"]
+    return counter, final, chunk_count, validation_rounds["n"], aio_models
 
 
 @pytest.mark.asyncio
@@ -352,19 +323,18 @@ async def run_counted_pipeline(
         pytest.param(HUMANITIES_GOLDEN, id="humanities_sample"),
     ],
 )
-async def test_embed_content_counts_on_golden_with_one_retry(pdf_path: Path) -> None:
+async def test_local_embed_counts_on_golden_with_one_retry(pdf_path: Path) -> None:
     assert pdf_path.is_file(), f"missing golden PDF: {pdf_path}"
     structure = _structure_from_pdf(pdf_path)
-    counter, final, chunks, val_rounds = await run_counted_pipeline(
+    counter, final, chunks, val_rounds, aio_models = await run_counted_pipeline(
         structure=structure,
         file_path=str(pdf_path),
         force_one_retry=True,
     )
 
     assert final.get("current_stage") == "publish"
-    assert val_rounds == 2  # fail once → retry → pass
+    assert val_rounds == 2
     assert chunks >= 1
-    # Teaching plan factory: 2 periods + assessments ⇒ 3 groundedness queries / round
     queries_per_round = 3
     pre_fix = _pre_fix_text_units(
         chunks=chunks, queries_per_validation=queries_per_round, validations=val_rounds
@@ -374,22 +344,21 @@ async def test_embed_content_counts_on_golden_with_one_retry(pdf_path: Path) -> 
     assert counter.text_units < pre_fix
     assert counter.calls >= 1
     assert counter.text_units < TARGET_MAX_TEXT_UNITS
+    aio_models.embed_content.assert_not_called()
 
-    ratio_vs_live = PRE_FIX_LIVE_TEXT_UNITS / max(counter.text_units, 1)
     print(
         f"\n[golden {pdf_path.name}] chunks={chunks} val_rounds={val_rounds} "
-        f"embed_content_calls={counter.calls} text_units={counter.text_units} "
+        f"local_embed_calls={counter.calls} text_units={counter.text_units} "
         f"batches={counter.batch_sizes} pre_fix_same_doc={pre_fix} "
-        f"vs_live_984_ratio={ratio_vs_live:.1f}x model={DEFAULT_EMBED}"
+        f"gemini_embed_content=0 model={LOCAL_EMBED_MODEL}"
     )
 
 
 @pytest.mark.asyncio
-async def test_embed_content_counts_live_scale_stem_with_one_retry() -> None:
-    """Live-scale (~40 chunks) projection — comparable to today's Stage-9 failure size."""
+async def test_local_embed_counts_live_scale_stem_with_one_retry() -> None:
     assert STEM_GOLDEN.is_file()
     structure = _live_scale_structure(STEM_GOLDEN, target_chunks=40)
-    counter, final, chunks, val_rounds = await run_counted_pipeline(
+    counter, final, chunks, val_rounds, aio_models = await run_counted_pipeline(
         structure=structure,
         file_path=str(STEM_GOLDEN),
         force_one_retry=True,
@@ -406,23 +375,20 @@ async def test_embed_content_counts_live_scale_stem_with_one_retry() -> None:
     assert counter.text_units <= chunks + queries_per_round * val_rounds
     assert counter.text_units < pre_fix
     assert counter.text_units <= TARGET_MAX_TEXT_UNITS
+    aio_models.embed_content.assert_not_called()
 
-    ratio_vs_live = PRE_FIX_LIVE_TEXT_UNITS / max(counter.text_units, 1)
-    runs_per_day = math.floor(1000 / max(counter.text_units, 1))
     print(
         f"\n[live-scale stem] chunks={chunks} val_rounds={val_rounds} "
-        f"embed_content_calls={counter.calls} text_units={counter.text_units} "
+        f"local_embed_calls={counter.calls} text_units={counter.text_units} "
         f"batches={counter.batch_sizes} pre_fix_same_doc={pre_fix} "
-        f"reduction_vs_pre_fix={pre_fix / max(counter.text_units, 1):.1f}x "
-        f"vs_live_984_ratio={ratio_vs_live:.1f}x projected_runs_per_day~{runs_per_day}"
+        f"gemini_embed_content=0 vs_live_984={PRE_FIX_LIVE_TEXT_UNITS}"
     )
 
 
 @pytest.mark.asyncio
-async def test_embed_content_counts_live_scale_worst_case_retry_exhaustion() -> None:
-    """Worst case: validation fails until MAX_VALIDATION_RETRIES exhausts (2 rounds)."""
+async def test_local_embed_counts_live_scale_worst_case_retry_exhaustion() -> None:
     structure = _live_scale_structure(STEM_GOLDEN, target_chunks=40)
-    counter, final, chunks, val_rounds = await run_counted_pipeline(
+    counter, final, chunks, val_rounds, aio_models = await run_counted_pipeline(
         structure=structure,
         file_path=str(STEM_GOLDEN),
         force_one_retry=False,
@@ -432,10 +398,11 @@ async def test_embed_content_counts_live_scale_worst_case_retry_exhaustion() -> 
     assert final.get("error")
     assert val_rounds == 2
     assert counter.text_units <= TARGET_MAX_TEXT_UNITS
+    aio_models.embed_content.assert_not_called()
     pre_fix = _pre_fix_text_units(chunks=chunks, queries_per_validation=3, validations=2)
     print(
         f"\n[live-scale worst-case exhaust] chunks={chunks} val_rounds={val_rounds} "
-        f"embed_content_calls={counter.calls} text_units={counter.text_units} "
+        f"local_embed_calls={counter.calls} text_units={counter.text_units} "
         f"batches={counter.batch_sizes} pre_fix_same_doc={pre_fix} "
-        f"vs_live_984_ratio={PRE_FIX_LIVE_TEXT_UNITS / max(counter.text_units, 1):.1f}x"
+        f"gemini_embed_content=0"
     )

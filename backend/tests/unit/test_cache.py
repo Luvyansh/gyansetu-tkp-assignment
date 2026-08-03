@@ -12,7 +12,7 @@ from backend.app.llm.cache import (
     get_cached_embeddings,
     put_cached_embeddings,
 )
-from backend.app.llm.gemini_client import DEFAULT_EMBED
+from backend.app.llm.local_embeddings import LOCAL_EMBED_MODEL
 
 
 def test_cache_key_stable_for_same_inputs() -> None:
@@ -50,10 +50,10 @@ def test_cache_key_handles_non_json_via_default_str() -> None:
 
 
 def test_embed_cache_key_stable_and_model_scoped() -> None:
-    a = embed_cache_key("same text", DEFAULT_EMBED)
-    b = embed_cache_key("same text", DEFAULT_EMBED)
+    a = embed_cache_key("same text", LOCAL_EMBED_MODEL)
+    b = embed_cache_key("same text", LOCAL_EMBED_MODEL)
     c = embed_cache_key("same text", "other-model")
-    d = embed_cache_key("other text", DEFAULT_EMBED)
+    d = embed_cache_key("other text", LOCAL_EMBED_MODEL)
     assert a == b
     assert a != c
     assert a != d
@@ -69,7 +69,7 @@ async def test_get_and_put_cached_embeddings() -> None:
     empty.all.return_value = []
     session.execute = AsyncMock(return_value=empty)
 
-    key = embed_cache_key("hello", DEFAULT_EMBED)
+    key = embed_cache_key("hello", LOCAL_EMBED_MODEL)
     await put_cached_embeddings(session, [(key, [0.1, 0.2, 0.3])])
     session.add.assert_called_once()
 
