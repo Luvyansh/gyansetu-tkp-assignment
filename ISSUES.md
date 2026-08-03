@@ -5,6 +5,56 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] Local MiniLM embeddings + Flash-Lite-primary routing (quota bypass)
+
+**Context:** Gemini 3.5 Flash over daily quota (22/20) and RPM-maxed; Embedding-1
+at 660/1000. Needed a path that spends **zero** embed quota and **near-zero**
+full Flash.
+
+### 1. Embeddings -> local `all-MiniLM-L6-v2` (384-d)
+- `sentence-transformers` dependency; model loads once at FastAPI lifespan
+  (`ensure_embedding_model_loaded`), never per-request.
+- `LLMRouter.embed` calls local encode only (Postgres content-hash cache kept).
+  Gemini/Groq are **out of the embed path** entirely.
+- `EMBEDDING_DIM=384`, Alembic `0002_embed_dim_384` (clears old 768-d vectors +
+  embed cache rows).
+
+### 2. Generation routing: Flash-Lite -> Groq -> Flash last-resort
+- All stages (incl. knowledge_extraction, teaching_planner, validation_judge,
+  multimodal) primary on `gemini-3.5-flash-lite`.
+- GROQ_ELIGIBLE expanded to those text stages; multimodal has no Groq vision ->
+  Lite then Flash only.
+- Full `gemini-3.5-flash` only if Lite and Groq both fail (or Lite alone when
+  Groq unset).
+
+### 3. Mocked NCERT cost (`sample_ncert.pdf`, 1 forced validation retry)
+| API | Count | Notes |
+|---|---:|---|
+| Gemini `embed_content` | **0** | local MiniLM only |
+| local embed text-units | **77** | batches [32,32,8,5] — same shape as before |
+| `generate` Flash | **0** | was 4 |
+| `generate` Flash-Lite | **19** | was 15 Lite + 4 Flash |
+| heavy-stage input tokens est. | **~6.4K** | knowledge + teaching |
+| all-stage input tokens est. | **~39.5K** | vs Flash-Lite TPM **250K** — ~16% |
+
+### 4. FAITHFULNESS_THRESHOLD recalibration (MiniLM space)
+| Pair | Cosine |
+|---|---:|
+| identical | 1.00 |
+| close paraphrase | 0.63 |
+| same-topic loose pedagogy | 0.42 |
+| unrelated | 0.05 |
+
+**0.85 does not hold** under MiniLM (close paraphrase only ~0.63). New default
+**0.50** — paraphrases pass embedding gate; loose pedagogy / unrelated still go
+to LLM judge / fail. Mocked RAGAS eval updated to score chunk-grounded
+paraphrases with real MiniLM (no Gemini).
+
+**Status:** Implemented / verified mocked — no live quota spent. Run
+`alembic upgrade head` before next live job.
+
+---
+
 ## [2026-08-03] Real NCERT chapter API-cost measurement (mocked clients)
 
 **Document:** `test_assets/sample_ncert.pdf` — "Shaping of the Earth's Surface"
@@ -54,7 +104,8 @@ risk on this document is **Flash 20/day**, not embeds.
 4. **Near-duplicate chunk collapse** before embed (low priority given cache +
    reuse already landed).
 
-**Status:** Measured via `test_ncert_api_costs.py` — no live quota spent
+**Status:** Measured via `test_ncert_api_costs.py` — no live quota spent.
+**Superseded for Flash/embed levers by:** Local MiniLM + Flash-Lite-primary entry above.
 
 ---
 

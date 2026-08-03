@@ -21,6 +21,8 @@ logger = get_logger(__name__)
 # Gemini 2.0 Flash / Flash-Lite retired 2026-06-01 (free-tier quota limit:0).
 # Gemini 2.5 Flash / Flash-Lite return 404 for new API keys ("no longer available
 # to new users"). Use current stable 3.x IDs — see ISSUES.md.
+# Embeddings moved to local MiniLM (see local_embeddings.py); DEFAULT_EMBED is
+# retained only for legacy rate-limit / error-string tests.
 DEFAULT_FLASH_LITE = "gemini-3.5-flash-lite"
 DEFAULT_FLASH = "gemini-3.5-flash"
 DEFAULT_EMBED = "gemini-embedding-001"

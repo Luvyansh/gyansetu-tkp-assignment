@@ -72,7 +72,8 @@ uv run pytest
 uv run python evals/run_ragas_eval.py --mock   # CI-safe; no live LLM keys required
 ```
 
-Faithfulness threshold: **≥ 0.85** (`FAITHFULNESS_THRESHOLD` / `settings.faithfulness_threshold`).
+Faithfulness threshold: **≥ 0.50** (`FAITHFULNESS_THRESHOLD` / `settings.faithfulness_threshold`;
+recalibrated for local MiniLM — Gemini-era 0.85 does not transfer).
 Reports: `evals/reports/latest_report.json`, `evals/reports/latest_summary.md`.
 
 ## Orchestration
@@ -83,15 +84,16 @@ Stage 8 runs in parallel with them (depends only on Stage 3).
 
 ## Design decisions
 
+- **Decision:** local `all-MiniLM-L6-v2` embeddings (384-d) into pgvector / **Because:** Gemini Embedding free-tier daily/RPM caps were burning the demo; local MiniLM removes that dependency entirely and loads once at app startup.
+- **Decision:** Flash-Lite primary → Groq fallback → full Flash last-resort / **Because:** Flash free-tier (20 RPD) was the binding constraint; Lite (~250K TPM) covers full-document extraction/planning with headroom, Groq absorbs overflow, Flash only if both fail.
 - **Decision:** pgvector on Postgres / **Because:** one free resource instead of a separate vector DB.
-- **Decision:** Gemini primary, Groq fallback / **Because:** Gemini's context + multimodal for chapters; Groq for speed/overflow on high-volume generation.
 - **Decision:** no Celery/Redis in v1 / **Because:** single-reviewer demo; asyncio + FastAPI background tasks suffice.
-- **Decision:** hallucination check via embedding similarity + LLM judge / **Because:** FAQ grounding rule — facts from source only; pedagogy may be general.
+- **Decision:** hallucination check via embedding similarity + LLM judge / **Because:** FAQ grounding rule — facts from source only; pedagogy may be general. Threshold **0.50** in MiniLM space (close paraphrase ≈0.63; unrelated ≈0.05).
 - **Decision:** flexible period count / **Because:** FAQ Q3 — driven by content volume/complexity, not hardcoded 5×40.
 
 ## Eval thresholds
 
-Minimum acceptable: faithfulness ≥ 0.85 (see `FAITHFULNESS_THRESHOLD`).
+Minimum acceptable: faithfulness ≥ 0.50 (see `FAITHFULNESS_THRESHOLD`).
 
 ### Security audit notes
 

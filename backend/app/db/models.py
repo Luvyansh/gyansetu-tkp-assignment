@@ -108,7 +108,7 @@ class KnowledgeChunk(Base):
         UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False
     )
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(768), nullable=True)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(384), nullable=True)
     section_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     document: Mapped[Document] = relationship(back_populates="chunks")
