@@ -29,6 +29,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level)
     logger.info("app_startup", environment=settings.environment)
+    from backend.app.llm.local_embeddings import ensure_embedding_model_loaded
+
+    await ensure_embedding_model_loaded()
     yield
     logger.info("app_shutdown")
 
