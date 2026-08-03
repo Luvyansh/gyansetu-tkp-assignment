@@ -5,6 +5,32 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-03] FAITHFULNESS 0.50 unsafe — live Period 3 hallucination scores 0.795 MiniLM
+
+**Case:** Job `99dcc2bc-694c-4b8e-9ed9-d058fe5bb291` Period 3 classroom content
+(cache `473f49e1…`) — invented weathering/erosion definitions + "agents of
+gradation". Live Gemini groundedness: period_3=**0.770**, avg=0.772 → below
+0.85 → LLM judge correctly FAIL.
+
+**MiniLM (all chunks from that job, n=75):** period_3 max-cosine = **0.795**.
+- At threshold **0.50**: embedding gate **auto-PASSes** (judge never runs) — hallucination slips through.
+- At threshold **0.85**: 0.795 < 0.85 → judge path → FAIL (matches live).
+
+Synthetic paraphrase bands (identical 1.0 / close 0.63 / unrelated 0.05) were
+misleading for topical NCERT chapters where many chunks mention weathering/
+erosion without defining "agents of gradation".
+
+**Fix:** Keep `FAITHFULNESS_THRESHOLD=0.85`. Fixture regression
+`test_period3_hallucination_threshold.py` +
+`fixtures/period3_hallucination_live.json`.
+
+**Alembic:** `uv run alembic upgrade head` applied `0001_initial → 0002_embed_dim_384`
+cleanly on local Postgres; `alembic current` = `0002_embed_dim_384 (head)`.
+
+**Status:** Confirmed / threshold restored to 0.85
+
+---
+
 ## [2026-08-03] Local MiniLM embeddings + Flash-Lite-primary routing (quota bypass)
 
 **Context:** Gemini 3.5 Flash over daily quota (22/20) and RPM-maxed; Embedding-1
@@ -45,13 +71,10 @@ full Flash.
 | same-topic loose pedagogy | 0.42 |
 | unrelated | 0.05 |
 
-**0.85 does not hold** under MiniLM (close paraphrase only ~0.63). New default
-**0.50** — paraphrases pass embedding gate; loose pedagogy / unrelated still go
-to LLM judge / fail. Mocked RAGAS eval updated to score chunk-grounded
-paraphrases with real MiniLM (no Gemini).
+**Synthetic bands suggested 0.50**, but the live Period 3 hallucination scores **0.795** under MiniLM and would auto-pass at 0.50 — see entry above.
+**Threshold kept at 0.85.**
 
-**Status:** Implemented / verified mocked — no live quota spent. Run
-`alembic upgrade head` before next live job.
+**Status:** Implemented; threshold decision superseded by real-case check above. Alembic `0002` applied.
 
 ---
 
