@@ -246,7 +246,9 @@ NODE_SESSION_TARGETS = [
 
 @pytest.fixture(scope="module")
 def ncert_path() -> Path:
-    assert NCERT_PDF.is_file(), f"Place the NCERT chapter at {NCERT_PDF}"
+    # PDF is gitignored (large/copyrighted); run locally when present, skip in CI.
+    if not NCERT_PDF.is_file():
+        pytest.skip(f"Place the NCERT chapter at {NCERT_PDF} (gitignored local asset)")
     return NCERT_PDF
 
 

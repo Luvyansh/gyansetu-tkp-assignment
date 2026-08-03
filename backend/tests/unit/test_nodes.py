@@ -34,6 +34,8 @@ from backend.tests.factories import (
 
 
 def _base_state(**overrides: Any) -> dict[str, Any]:
+    # Matching embeddings keep Stage 9 off the live DB (CI Postgres has no tables).
+    chunk_text = make_document_structure().full_text
     state: dict[str, Any] = {
         "job_id": uuid4(),
         "document_id": uuid4(),
@@ -42,7 +44,8 @@ def _base_state(**overrides: Any) -> dict[str, Any]:
         "document_structure": make_document_structure().model_dump(mode="json"),
         "classification": make_classification().model_dump(mode="json"),
         "knowledge": make_knowledge().model_dump(mode="json"),
-        "knowledge_chunk_texts": [make_document_structure().full_text],
+        "knowledge_chunk_texts": [chunk_text],
+        "knowledge_chunk_embeddings": [[1.0, 0.0, 0.0]],
         "teaching_plan": make_teaching_plan().model_dump(mode="json"),
         "classroom_content": None,
         "activities": None,
