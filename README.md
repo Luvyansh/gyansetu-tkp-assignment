@@ -131,7 +131,7 @@ flowchart LR
 
 - **Generate:** Flash-Lite → Groq (eligible text stages) → full Flash last.
 - **Embed:** always local MiniLM (384-d); Gemini `embed_content` is never used.
-- Model loads once at API startup (`ensure_embedding_model_loaded`).
+- Model lazy-loads on first embed (`device="cpu"`); not at API startup (Render 512MB).
 
 ---
 

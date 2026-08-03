@@ -69,4 +69,4 @@ def test_load_embedding_model_singleton() -> None:
         a = le.load_embedding_model()
         b = le.load_embedding_model()
     assert a is stub and b is stub
-    ctor.assert_called_once()
+    ctor.assert_called_once_with(le.LOCAL_EMBED_MODEL, device="cpu")

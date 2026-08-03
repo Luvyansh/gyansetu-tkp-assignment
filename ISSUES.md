@@ -5,6 +5,37 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-04] Render free tier OOM (exit 137) — CUDA torch + eager MiniLM
+
+**Symptom:** Render Docker free (512MB) build OK, then container killed immediately
+after `app_startup` — `Exited with status 137` (SIGKILL / OOM).
+
+**Local repro:** `docker run --memory=512m --memory-swap=512m … tkp-backend`
+→ `OOMKilled=true`, exit 137 during MiniLM load (same timeline as Render).
+
+**Root cause:**
+1. `sentence-transformers` pulled default PyPI **CUDA** `torch` on Linux
+   (`nvidia-cublas`, `cudnn`, `nccl`, …) — huge RSS vs CPU wheel.
+2. Lifespan called `ensure_embedding_model_loaded()` at startup, so peak memory
+   hit before the process could stay healthy.
+
+**Fix:**
+- Pin CPU-only torch: `[[tool.uv.index]] name=pytorch-cpu` +
+  `[tool.uv.sources] torch = [{ index = "pytorch-cpu" }]` + direct `torch` dep;
+  regenerated `uv.lock` → `torch==2.13.0+cpu`, **zero** `nvidia-*` packages.
+- Lazy-load MiniLM on first embed (`main.py` lifespan no longer warms model;
+  `SentenceTransformer(..., device="cpu")`).
+- Dockerfile: `WEB_CONCURRENCY=1`, `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`,
+  `TOKENIZERS_PARALLELISM=false`.
+
+**Measured (512MB cgroup, post-fix):**
+- Idle uvicorn `/health` 200: **~77–127 MiB**, `health=healthy`, `oom=false`
+- Same-process app + MiniLM load + encode: **peak ~453 MiB** (under limit)
+
+**Status:** Fixed locally under 512MB constraint; ready to redeploy to Render.
+
+---
+
 ## [2026-08-03] FAITHFULNESS 0.50 unsafe — live Period 3 hallucination scores 0.795 MiniLM
 
 **Case:** Job `99dcc2bc-694c-4b8e-9ed9-d058fe5bb291` Period 3 classroom content
@@ -38,8 +69,10 @@ at 660/1000. Needed a path that spends **zero** embed quota and **near-zero**
 full Flash.
 
 ### 1. Embeddings -> local `all-MiniLM-L6-v2` (384-d)
-- `sentence-transformers` dependency; model loads once at FastAPI lifespan
-  (`ensure_embedding_model_loaded`), never per-request.
+- `sentence-transformers` dependency; model **lazy-loads** on first embed
+  (not at FastAPI startup — eager load + CUDA torch OOMs Render 512MB).
+  Singleton reused thereafter; never re-downloaded per-request.
+
 - `LLMRouter.embed` calls local encode only (Postgres content-hash cache kept).
   Gemini/Groq are **out of the embed path** entirely.
 - `EMBEDDING_DIM=384`, Alembic `0002_embed_dim_384` (clears old 768-d vectors +

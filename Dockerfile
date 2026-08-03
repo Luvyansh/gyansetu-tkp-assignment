@@ -20,11 +20,16 @@ RUN useradd -m -u 1000 user
 
 WORKDIR /app
 # PORT default 8000 for local `docker run` without Render; Render injects PORT at runtime.
+# Keep process count / BLAS threads at 1 so MiniLM+torch fit Render free-tier 512MB.
 ENV PATH="/app/.venv/bin:/home/user/.local/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
     PORT=8000 \
     HOME=/home/user \
+    WEB_CONCURRENCY=1 \
+    OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    TOKENIZERS_PARALLELISM=false \
     HF_HOME=/tmp/hf_cache \
     HF_HUB_CACHE=/tmp/hf_cache/hub \
     SENTENCE_TRANSFORMERS_HOME=/tmp/hf_cache/sentence_transformers \

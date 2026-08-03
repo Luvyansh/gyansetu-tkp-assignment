@@ -1,8 +1,9 @@
 """Local sentence-transformers embeddings — no external API.
 
-Model is loaded once (app lifespan / first use) and reused for every
-``router.embed`` call. Dimension must stay in sync with ``Settings.embedding_dim``
-and the pgvector column (Alembic ``0002_embed_dim_384``).
+Model is lazy-loaded on first ``embed`` call and reused thereafter (not at
+FastAPI startup — eager load + CUDA torch exceeds Render free-tier 512MB).
+Dimension must stay in sync with ``Settings.embedding_dim`` and the pgvector
+column (Alembic ``0002_embed_dim_384``).
 """
 
 from __future__ import annotations
@@ -22,19 +23,20 @@ _lock = asyncio.Lock()
 
 
 def load_embedding_model() -> Any:
-    """Load ``all-MiniLM-L6-v2`` once (sync — call from startup or under a lock)."""
+    """Load ``all-MiniLM-L6-v2`` once (sync — call under a lock from async path)."""
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
 
         logger.info("local_embed_model_loading", model=LOCAL_EMBED_MODEL, dim=LOCAL_EMBED_DIM)
-        _model = SentenceTransformer(LOCAL_EMBED_MODEL)
+        # device="cpu" avoids accidental CUDA init if a CUDA wheel slips in.
+        _model = SentenceTransformer(LOCAL_EMBED_MODEL, device="cpu")
         logger.info("local_embed_model_ready", model=LOCAL_EMBED_MODEL)
     return _model
 
 
 async def ensure_embedding_model_loaded() -> None:
-    """Idempotent async warm-up for FastAPI lifespan."""
+    """Idempotent async warm-up (optional; preferred path is lazy first embed)."""
     async with _lock:
         if _model is None:
             await asyncio.to_thread(load_embedding_model)
