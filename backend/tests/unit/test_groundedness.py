@@ -94,7 +94,7 @@ async def test_check_groundedness_pass(patch_llm_router: AsyncMock) -> None:
     check = await check_groundedness(state)
     assert check.name == "groundedness_check"
     assert check.status == CheckStatus.PASS
-    assert check.score is not None and check.score >= 0.50
+    assert check.score is not None and check.score >= 0.85
     assert "period_1" in state["grounding_scores"]
 
 
