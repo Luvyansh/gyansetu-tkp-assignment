@@ -42,6 +42,10 @@ uploads/
 *.pdf.export
 backend/app/pdf_export/out/
 
+# Large local measurement fixtures (keep path; do not commit multi-MB PDFs)
+test_assets/*.pdf
+!test_assets/.gitkeep
+
 # Logs
 *.log
 logs/
