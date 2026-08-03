@@ -1,0 +1,443 @@
+{
+  "schema_version": "1.0",
+  "package_id": "df3c9bcb-9125-4a56-9cb4-013e9f986e7e",
+  "job_id": "de96d787-40c7-4372-89ed-fb64faeda57e",
+  "document_id": "00d224b7-9bfb-434c-b209-3d9b3e431041",
+  "source_filename": "humanities_sample.pdf",
+  "created_at": "2026-08-03T09:53:31.107579Z",
+  "classification": {
+    "subject": "History",
+    "grade": "Class 9",
+    "difficulty": "introductory",
+    "topic": "The French Revolution",
+    "chapter": "The French Revolution",
+    "category": "humanities",
+    "language": "English",
+    "rationale": "The text explicitly discusses the historical events, causes, and impacts of the French Revolution, which aligns with standard World History curricula typically taught in Class 9."
+  },
+  "knowledge": {
+    "learning_objectives": [
+      {
+        "text": "Understand the causes, key events, and impacts of the French Revolution",
+        "bloom_level": "understand",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 1,
+          "page": null,
+          "quote": "The French Revolution began in 1789 and profoundly reshaped European politics and society."
+        }
+      }
+    ],
+    "prerequisites": [],
+    "concepts": [
+      {
+        "name": "Causes of the French Revolution",
+        "explanation": "The revolution was triggered by a fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas about rights and citizenship.",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 2,
+          "page": null,
+          "quote": "Causes included fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas"
+        }
+      },
+      {
+        "name": "Impact of the French Revolution",
+        "explanation": "The Revolution abolished feudal privileges, challenged absolute monarchy, and influenced later democratic movements worldwide.",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 4,
+          "page": null,
+          "quote": "The Revolution abolished feudal privileges and challenged absolute monarchy, influencing later"
+        }
+      }
+    ],
+    "definitions": [],
+    "formulae": [],
+    "keywords": [
+      {
+        "term": "French Revolution",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 1,
+          "page": null,
+          "quote": "The French Revolution began in 1789"
+        }
+      },
+      {
+        "term": "Ancien Regime",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 2,
+          "page": null,
+          "quote": "inequality under the Ancien Regime"
+        }
+      },
+      {
+        "term": "Declaration of the Rights of Man and of the Citizen",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 3,
+          "page": null,
+          "quote": "the Declaration of the Rights of Man and of the Citizen"
+        }
+      }
+    ],
+    "examples": [],
+    "applications": [
+      {
+        "description": "Influencing later democratic movements worldwide",
+        "source_ref": {
+          "section": "The French Revolution",
+          "paragraph": 4,
+          "page": null,
+          "quote": "influencing later democratic movements worldwide."
+        }
+      }
+    ],
+    "common_misconceptions": []
+  },
+  "teaching_plan": {
+    "total_periods": 2,
+    "periods": [
+      {
+        "period_number": 1,
+        "title": "Causes and Origins of the French Revolution",
+        "duration_minutes": 45,
+        "objectives": [
+          "Understand the timeline and background of the French Revolution beginning in 1789",
+          "Identify the primary causes including the fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas"
+        ],
+        "concepts_covered": [
+          "Causes of the French Revolution"
+        ],
+        "pacing_rationale": "Forty-five minutes allows sufficient time to introduce the historical context of 1789 and break down the complex socio-political causes such as the Ancien Regime and Enlightenment ideas without cognitive overload."
+      },
+      {
+        "period_number": 2,
+        "title": "Impact and Global Legacy of the French Revolution",
+        "duration_minutes": 45,
+        "objectives": [
+          "Examine key documents such as the Declaration of the Rights of Man and of the Citizen",
+          "Analyze how the Revolution abolished feudal privileges, challenged absolute monarchy, and influenced later democratic movements"
+        ],
+        "concepts_covered": [
+          "Impact of the French Revolution"
+        ],
+        "pacing_rationale": "A dedicated second period allows students to focus entirely on the outcomes, key documents, and global applications of the revolution, moving logically from causes to effects."
+      }
+    ],
+    "overall_rationale": "The two-period structure is ideal for an introductory Class 9 history topic on the French Revolution. It neatly divides the source material into a foundational session on causes and origins followed by a second session on impacts and global democratic applications."
+  },
+  "classroom_content": {
+    "periods": [
+      {
+        "period_number": 1,
+        "entry_ticket": "In what year did the French Revolution begin, and what do you think a 'revolution' is?",
+        "teacher_script": "Good morning, class. Today we are beginning our study of the French Revolution, a monumental event that began in 1789 and profoundly reshaped European politics and society. As we look at the origins of this period, we need to understand what triggered it. The causes included a severe fiscal crisis, deep inequality under the Ancien Regime, and the spread of Enlightenment ideas about rights and citizenship. Keep these core causes in mind as we explore how society was structured before the revolution took hold.",
+        "blackboard_notes": "Topic: The French Revolution (Begins: 1789)\nProfound Impact: Reshaped European politics and society.\n\nPrimary Causes:\n1. Fiscal crisis\n2. Inequality under the Ancien Regime\n3. Enlightenment ideas (rights and citizenship)",
+        "classroom_activities": [
+          {
+            "name": "Causes Brainstorm and Discussion",
+            "activity_type": "discussion",
+            "duration_minutes": 20,
+            "materials": [
+              "Notebooks",
+              "Whiteboard"
+            ],
+            "instructions": "Divide students into small groups to discuss what a 'fiscal crisis' and 'inequality under the Ancien Regime' might mean for everyday people in 1789. Bring the class back together to map out the three primary causes on the board.",
+            "success_criteria": "Students correctly identify and write down the three primary causes of the French Revolution from the source material."
+          }
+        ],
+        "checkpoint_questions": [
+          "In what year did the French Revolution begin?",
+          "What were the three main causes of the French Revolution mentioned in our text?"
+        ],
+        "exit_ticket": "List the three main causes of the French Revolution in your own words based on today's lesson.",
+        "homework": "Write a short paragraph summarizing how inequality under the Ancien Regime and Enlightenment ideas contributed to the start of the French Revolution in 1789.",
+        "mentor_moment": "History is not just a collection of dates and names; it is the story of people striving for fairness, rights, and a better world. Every time you ask questions about fairness and society today, you are engaging with the very same spirit of inquiry that sparked the Enlightenment.",
+        "grounding_score": null
+      },
+      {
+        "period_number": 2,
+        "entry_ticket": "In one sentence, name one major document or event from the French Revolution you recall from our studies.",
+        "teacher_script": "Today, we are going to examine the profound impact and global legacy of the French Revolution, which began in 1789. We will look at key documents such as the Declaration of the Rights of Man and of the Citizen. Furthermore, we will analyze how the Revolution abolished feudal privileges, challenged absolute monarchy, and influenced later democratic movements worldwide.",
+        "blackboard_notes": "Impact of the French Revolution:\n- Key Document: Declaration of the Rights of Man and of the Citizen\n- Abolished feudal privileges\n- Challenged absolute monarchy\n- Influenced later democratic movements worldwide",
+        "classroom_activities": [
+          {
+            "name": "Document and Impact Discussion",
+            "activity_type": "discussion",
+            "duration_minutes": 25,
+            "materials": [
+              "Text excerpts on the Declaration of the Rights of Man and of the Citizen"
+            ],
+            "instructions": "Divide students into small groups to discuss how the Declaration of the Rights of Man and of the Citizen, along with the abolition of feudal privileges and the challenge to absolute monarchy, shaped European politics and society. Have groups share how these elements influenced later democratic movements worldwide.",
+            "success_criteria": "Students can successfully explain how feudal privileges were abolished, how absolute monarchy was challenged, and cite global democratic influences."
+          }
+        ],
+        "checkpoint_questions": [
+          "What key document was adopted during the events of the revolution?",
+          "How did the Revolution affect feudal privileges and absolute monarchy?",
+          "What was the global impact of the French Revolution on later movements?"
+        ],
+        "exit_ticket": "Write down two ways the French Revolution impacted society or politics beyond its borders.",
+        "homework": "Write a short paragraph summarizing how the French Revolution challenged absolute monarchy and influenced later democratic movements worldwide.",
+        "mentor_moment": "History shows us that ideas about rights, citizenship, and equality have the power to cross borders and transform entire societies. Keep exploring how past voices continue to shape the democratic world we live in today!",
+        "grounding_score": null
+      }
+    ]
+  },
+  "activities": {
+    "activities": [
+      {
+        "name": "Causes Mapping Discussion",
+        "activity_type": "discussion",
+        "duration_minutes": 20,
+        "materials": [
+          "Whiteboard",
+          "Markers",
+          "Text excerpts on the French Revolution"
+        ],
+        "instructions": "Divide students into small groups. Ask each group to discuss and list the primary causes of the French Revolution based on the source material, focusing specifically on the fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas. Reconvene as a whole class to build a collective concept map on the board.",
+        "success_criteria": "Students correctly identify and explain the fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas as the core triggers of the revolution."
+      },
+      {
+        "name": "Key Events Timeline Role-Play",
+        "activity_type": "role_play",
+        "duration_minutes": 25,
+        "materials": [
+          "Index cards with event names (Estates-General, Tennis Court Oath, Storming of the Bastille, Declaration of the Rights of Man and of the Citizen)"
+        ],
+        "instructions": "Assign students or small groups to represent the key events of the French Revolution starting from 1789. Have them arrange themselves in chronological order and briefly act out or announce the significance of their assigned event to the rest of the class using only facts from the provided source material.",
+        "success_criteria": "Students accurately sequence the timeline of key events starting in 1789 and explain their historical relevance."
+      },
+      {
+        "name": "Global Legacy Analysis",
+        "activity_type": "other",
+        "duration_minutes": 20,
+        "materials": [
+          "Handouts featuring the impact of the French Revolution"
+        ],
+        "instructions": "Instruct students to read the sections detailing how the Revolution abolished feudal privileges, challenged absolute monarchy, and influenced later democratic movements worldwide. Have them write a short reflective paragraph answering how these outcomes transformed European politics and society.",
+        "success_criteria": "Students explicitly mention the abolition of feudal privileges, the challenge to absolute monarchy, and the global influence on democratic movements in their written work."
+      }
+    ]
+  },
+  "assessments": {
+    "formative": [
+      {
+        "question_type": "mcq",
+        "prompt": "In what year did the French Revolution begin?",
+        "options": [
+          "1779",
+          "1789",
+          "1799",
+          "1804"
+        ],
+        "answer_key": "1789",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Causes of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 1"
+      },
+      {
+        "question_type": "short",
+        "prompt": "List the primary causes that triggered the French Revolution.",
+        "options": null,
+        "answer_key": "The causes included a fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas about rights and citizenship.",
+        "rubric": "Award 1 mark for mentioning the fiscal crisis, 1 mark for inequality under the Ancien Regime, and 1 mark for Enlightenment ideas.",
+        "marks": 3.0,
+        "concepts_tested": [
+          "Causes of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 2"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "Which of the following was a key event or document associated with the French Revolution?",
+        "options": [
+          "The Magna Carta",
+          "The Declaration of the Rights of Man and of the Citizen",
+          "The Bill of Rights",
+          "The Emancipation Proclamation"
+        ],
+        "answer_key": "The Declaration of the Rights of Man and of the Citizen",
+        "rubric": null,
+        "marks": 1.0,
+        "concepts_tested": [
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 3"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Name two key events of the French Revolution mentioned in the text alongside the storming of the Bastille.",
+        "options": null,
+        "answer_key": "The Estates-General and the Tennis Court Oath.",
+        "rubric": "Award 1 mark for each correctly identified event from the text.",
+        "marks": 2.0,
+        "concepts_tested": [
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 3"
+      }
+    ],
+    "summative": [
+      {
+        "question_type": "mcq",
+        "prompt": "How did the French Revolution impact European politics and society overall?",
+        "options": [
+          "It left European politics and society completely unchanged.",
+          "It reinforced absolute monarchy and feudal privileges.",
+          "It profoundly reshaped European politics and society.",
+          "It focused solely on economic trade agreements."
+        ],
+        "answer_key": "It profoundly reshaped European politics and society.",
+        "rubric": null,
+        "marks": 2.0,
+        "concepts_tested": [
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 1"
+      },
+      {
+        "question_type": "short",
+        "prompt": "Explain how the French Revolution affected absolute monarchy and feudal privileges.",
+        "options": null,
+        "answer_key": "The Revolution abolished feudal privileges and challenged absolute monarchy.",
+        "rubric": "Award 2 marks total: 1 mark for noting the abolition of feudal privileges and 1 mark for noting the challenge to absolute monarchy.",
+        "marks": 4.0,
+        "concepts_tested": [
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 4"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "What role did Enlightenment ideas play in the French Revolution?",
+        "options": [
+          "They focused strictly on military tactics.",
+          "They contributed to causes regarding rights and citizenship.",
+          "They supported the strengthening of the Ancien Regime.",
+          "They were completely ignored by revolutionaries."
+        ],
+        "answer_key": "They contributed to causes regarding rights and citizenship.",
+        "rubric": null,
+        "marks": 2.0,
+        "concepts_tested": [
+          "Causes of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 2"
+      },
+      {
+        "question_type": "long",
+        "prompt": "Discuss the background, primary causes, and the global legacy/impact of the French Revolution based on the text.",
+        "options": null,
+        "answer_key": "The French Revolution began in 1789, profoundly reshaping European politics and society. Its causes included a fiscal crisis, inequality under the Ancien Regime, and Enlightenment ideas about rights and citizenship. Key events included the Estates-General, the Tennis Court Oath, the storming of the Bastille, and the Declaration of the Rights of Man and of the Citizen. Its impact included abolishing feudal privileges, challenging absolute monarchy, and influencing later democratic movements worldwide.",
+        "rubric": "Award marks based on inclusion of: start year/general reshaping (2 marks), specific causes like fiscal crisis, Ancien Regime, and Enlightenment ideas (3 marks), key events/documents (3 marks), and domestic/global impacts like abolishing feudal privileges and influencing democratic movements (3 marks).",
+        "marks": 11.0,
+        "concepts_tested": [
+          "Causes of the French Revolution",
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraphs 1-4"
+      },
+      {
+        "question_type": "mcq",
+        "prompt": "Beyond Europe, what was a significant global outcome of the French Revolution?",
+        "options": [
+          "It isolated European nations from the rest of the world.",
+          "It influenced later democratic movements worldwide.",
+          "It established absolute monarchies globally.",
+          "It reinforced feudal systems across other continents."
+        ],
+        "answer_key": "It influenced later democratic movements worldwide.",
+        "rubric": null,
+        "marks": 2.0,
+        "concepts_tested": [
+          "Impact of the French Revolution"
+        ],
+        "source_ref_hint": "Paragraph 4"
+      }
+    ],
+    "total_marks": 21.0
+  },
+  "gap_analysis": {
+    "gaps": [
+      {
+        "misconception": "Students may assume the French Revolution was caused solely by a sudden food riot or a single bad harvest rather than deep systemic issues under the Ancien Regime.",
+        "diagnostic_question": "Which of the following best describes the primary causes of the French Revolution? A) A sudden bad harvest that lasted only a few weeks, B) Long-standing social inequality under the Ancien Regime combined with a severe fiscal crisis and Enlightenment ideas, C) A foreign invasion by Britain, D) A religious dispute between the Pope and the French king.",
+        "severity": "high",
+        "remedial_actions": [
+          "Use a structural analogy like a pressure cooker to explain how deep-seated fiscal crises and estate inequalities built up over decades before 1789.",
+          "Review the social structure of the Three Estates to show systemic inequality."
+        ],
+        "related_concepts": [
+          "Causes of the French Revolution",
+          "Ancien Regime"
+        ]
+      },
+      {
+        "misconception": "Students may believe that the French Revolution completely and instantly established a stable, long-lasting democratic republic throughout Europe without any resistance or absolute monarchy returns.",
+        "diagnostic_question": "True or False: The French Revolution immediately ended all forms of absolute monarchy in Europe forever and created a lasting peaceful democracy in France starting in 1789. Explain your reasoning in one sentence.",
+        "severity": "medium",
+        "remedial_actions": [
+          "Provide a brief worked timeline showing that the revolution challenged absolute monarchy and abolished feudal privileges, but also faced immense internal and external struggles.",
+          "Emphasize the difference between challenging a system and completely establishing permanent global democratic stability overnight."
+        ],
+        "related_concepts": [
+          "Impact of the French Revolution",
+          "Declaration of the Rights of Man and of the Citizen"
+        ]
+      },
+      {
+        "misconception": "Students might confuse Enlightenment ideas with the defense of absolute monarchy and divine right of kings.",
+        "diagnostic_question": "How did Enlightenment ideas influence the outbreak of the French Revolution? A) They encouraged people to support absolute monarchy and divine right, B) They promoted concepts of individual rights, equality, and citizenship that challenged the Ancien Regime, C) They argued that only the clergy should pay taxes, D) They had no impact on political thought in 1789.",
+        "severity": "medium",
+        "remedial_actions": [
+          "Reteach key Enlightenment principles focusing on rights, social contracts, and citizenship versus divine right.",
+          "Have students match specific Enlightenment quotes to demands for equality."
+        ],
+        "related_concepts": [
+          "Causes of the French Revolution",
+          "Declaration of the Rights of Man and of the Citizen"
+        ]
+      }
+    ],
+    "summary": "This learning gap analysis identifies key student misconceptions regarding the systemic causes of the French Revolution, the role of Enlightenment ideas, and the immediate versus long-term impacts of challenging absolute monarchy. Diagnostic questions and practical remedial actions are provided to help teachers address these conceptual hurdles during formative assessments."
+  },
+  "validation": {
+    "schema_check": {
+      "name": "schema_check",
+      "status": "pass",
+      "details": "All required stage outputs are present and valid",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "groundedness_check": {
+      "name": "groundedness_check",
+      "status": "pass",
+      "details": "avg=0.807; assessments=0.891, period_1=0.848, period_2=0.682; judge_passed=True; judge=All generated facts, events, dates, and concepts are fully supported by the provided source chunks regarding the French Revolution, with no hallucinated subject matter.",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "consistency_check": {
+      "name": "consistency_check",
+      "status": "pass",
+      "details": "Period numbers and concept references are consistent",
+      "score": 1.0,
+      "retry_target": null
+    },
+    "overall_passed": true,
+    "grounding_scores": {
+      "overall": 1.0
+    }
+  },
+  "metadata": {
+    "parser_route": "pymupdf_text",
+    "pdf_lesson-plan": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\de96d787-40c7-4372-89ed-fb64faeda57e\\lesson-plan.pdf",
+    "pdf_teacher-guide": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\de96d787-40c7-4372-89ed-fb64faeda57e\\teacher-guide.pdf",
+    "pdf_assessment-book": "E:\\Projects\\gyansetu-tkp-assignment\\tmp\\pdfs\\de96d787-40c7-4372-89ed-fb64faeda57e\\assessment-book.pdf"
+  }
+}
