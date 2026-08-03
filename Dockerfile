@@ -1,5 +1,5 @@
-# Multi-stage backend image for Hugging Face Spaces / container hosts.
-# Writable persistence must use /tmp or an external DB (Neon) — Spaces wipe local disk.
+# Multi-stage backend image for Render (Docker) / container hosts.
+# Ephemeral disk — writable temps under /tmp; durable state in Postgres (Neon).
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
@@ -16,23 +16,39 @@ RUN uv sync --frozen --no-dev --no-editable
 
 FROM python:3.12-slim-bookworm AS runtime
 
+RUN useradd -m -u 1000 user
+
 WORKDIR /app
-ENV PATH="/app/.venv/bin:$PATH" \
+# PORT default 8000 for local `docker run` without Render; Render injects PORT at runtime.
+ENV PATH="/app/.venv/bin:/home/user/.local/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
-    PORT=7860
+    PORT=8000 \
+    HOME=/home/user \
+    HF_HOME=/tmp/hf_cache \
+    HF_HUB_CACHE=/tmp/hf_cache/hub \
+    SENTENCE_TRANSFORMERS_HOME=/tmp/hf_cache/sentence_transformers \
+    TORCH_HOME=/tmp/hf_cache/torch \
+    XDG_CACHE_HOME=/tmp/xdg_cache
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libmagic1 \
+    && apt-get install -y --no-install-recommends libmagic1 curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/backend /app/backend
-COPY --from=builder /app/migrations /app/migrations
-COPY --from=builder /app/alembic.ini /app/alembic.ini
-COPY --from=builder /app/pyproject.toml /app/pyproject.toml
+COPY --from=builder --chown=user:user /app/.venv /app/.venv
+COPY --from=builder --chown=user:user /app/backend /app/backend
+COPY --from=builder --chown=user:user /app/migrations /app/migrations
+COPY --from=builder --chown=user:user /app/alembic.ini /app/alembic.ini
+COPY --from=builder --chown=user:user /app/pyproject.toml /app/pyproject.toml
 
-EXPOSE 7860
+USER user
 
-# HF Spaces expects the app to listen on $PORT (default 7860).
-CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
+# Documents the local/default listen port; Render sets PORT dynamically at runtime.
+EXPOSE 8000
+
+# Shell form so HEALTHCHECK honors $PORT (Render injects it; default matches ENV/EXPOSE).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+    CMD curl -f http://127.0.0.1:${PORT:-8000}/health || exit 1
+
+# Render injects PORT; fallback 8000 for local docker run without that env var.
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

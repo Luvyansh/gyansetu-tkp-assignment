@@ -221,15 +221,19 @@ async def render_all_pdfs(
 
     Args:
         tkp: Completed Teacher Knowledge Package.
-        output_dir: Destination directory. Defaults to ``tmp/pdfs/{job_id}/``
+        output_dir: Destination directory. Defaults to
+            ``{tempdir}/tkp_pdfs/{job_id}/`` (system temp, ``/tmp`` on Linux)
             when ``job_id`` is set, otherwise a fresh temp directory.
+            Paths are ephemeral — callers must tolerate regeneration
+            (HF Spaces free tier only allows writes under ``/tmp``).
 
     Returns:
         Mapping of artifact name → absolute file path.
     """
     if output_dir is None:
         job_part = str(tkp.job_id) if tkp.job_id else "anon"
-        base = Path("tmp") / "pdfs" / job_part
+        # Use system temp (``/tmp`` on Linux / HF Spaces), not ``./tmp`` under WORKDIR.
+        base = Path(tempfile.gettempdir()) / "tkp_pdfs" / job_part
         try:
             output_dir = _ensure_dir(base)
         except OSError:

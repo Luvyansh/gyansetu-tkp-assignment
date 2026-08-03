@@ -23,6 +23,7 @@ htmlcov/
 
 # IDE / editor
 .cursor/
+.kombai/
 .idea/
 .vscode/
 *.swp
