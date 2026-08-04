@@ -1,5 +1,6 @@
 # Multi-stage backend image for Render (Docker) / container hosts.
 # Ephemeral disk — writable temps under /tmp; durable state in Postgres (Neon).
+# MiniLM weights are baked into /app/hf_cache at build time (no runtime HF download).
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
@@ -21,6 +22,7 @@ RUN useradd -m -u 1000 user
 WORKDIR /app
 # PORT default 8000 for local `docker run` without Render; Render injects PORT at runtime.
 # Keep process count / BLAS threads at 1 so MiniLM+torch fit Render free-tier 512MB.
+# HF_* paths point at the baked-in cache (NOT /tmp) so cold starts do not download ~90MB.
 ENV PATH="/app/.venv/bin:/home/user/.local/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
@@ -30,11 +32,11 @@ ENV PATH="/app/.venv/bin:/home/user/.local/bin:$PATH" \
     OMP_NUM_THREADS=1 \
     MKL_NUM_THREADS=1 \
     TOKENIZERS_PARALLELISM=false \
-    HF_HOME=/tmp/hf_cache \
-    HF_HUB_CACHE=/tmp/hf_cache/hub \
-    SENTENCE_TRANSFORMERS_HOME=/tmp/hf_cache/sentence_transformers \
-    TORCH_HOME=/tmp/hf_cache/torch \
-    XDG_CACHE_HOME=/tmp/xdg_cache
+    HF_HOME=/app/hf_cache \
+    HF_HUB_CACHE=/app/hf_cache/hub \
+    SENTENCE_TRANSFORMERS_HOME=/app/hf_cache/sentence_transformers \
+    TORCH_HOME=/app/hf_cache/torch \
+    XDG_CACHE_HOME=/app/hf_cache/xdg
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libmagic1 curl \
@@ -46,13 +48,25 @@ COPY --from=builder --chown=user:user /app/migrations /app/migrations
 COPY --from=builder --chown=user:user /app/alembic.ini /app/alembic.ini
 COPY --from=builder --chown=user:user /app/pyproject.toml /app/pyproject.toml
 
+# Bake all-MiniLM-L6-v2 into the image so first embed never hits the Hugging Face hub.
+# Build machines have enough RAM; runtime free tier does not have budget for a cold download.
+RUN mkdir -p /app/hf_cache \
+    && /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer; \
+SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device='cpu'); \
+print('minilm_baked_ok')" \
+    && chown -R user:user /app/hf_cache
+
 USER user
+
+# Fail fast at runtime if the bake is missing — never hang on a hub download.
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
 
 # Documents the local/default listen port; Render sets PORT dynamically at runtime.
 EXPOSE 8000
 
 # Shell form so HEALTHCHECK honors $PORT (Render injects it; default matches ENV/EXPOSE).
-HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -f http://127.0.0.1:${PORT:-8000}/health || exit 1
 
 # Render injects PORT; fallback 8000 for local docker run without that env var.

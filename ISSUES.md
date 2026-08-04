@@ -5,6 +5,38 @@ Newest entries at the top. Append on every real finding — do not wait to be as
 
 ---
 
+## [2026-08-04] Render pipeline stall — MiniLM hub download at first embed
+
+**Symptom:** Job `1aa13616-2b9d-469f-9319-b42f24f177dd` — SSE connected, no OOM
+(137), no traceback; `/tkp` still 404 minutes later. Pipeline appeared stuck.
+
+**Root cause:** MiniLM weights were **not** in the image. Dockerfile set
+`HF_HOME=/tmp/hf_cache` (empty on every boot). First `router.embed` in
+`knowledge_extraction` called `SentenceTransformer(...)` which downloads
+~80–100MB from Hugging Face hub at runtime. Local runs looked fine because
+`~/.cache` was already warm. On Render free tier that cold fetch stalls /
+starves the single worker with no clear log trail.
+
+**Local evidence:**
+- Pre-bake image + empty `HF_HOME=/tmp/empty_hf`: cold load took **~34s** alone
+  under `--memory=512m` (and competes with uvicorn RSS in a real job).
+- Post-bake image + `HF_HUB_OFFLINE=1`: load from `/app/hf_cache` in **~7.5s**,
+  encode OK; empty cache + offline **fails fast** (`LocalEntryNotFoundError`).
+
+**Fix:**
+1. Dockerfile `RUN` downloads MiniLM into `/app/hf_cache` at **build** time;
+   `HF_HOME` etc. point there (not `/tmp`); runtime `HF_HUB_OFFLINE=1` /
+   `TRANSFORMERS_OFFLINE=1`.
+2. `local_embeddings.py`: `local_files_only` when offline; log `hf_home` /
+   `offline` on load.
+3. `build_graph.py`: `pipeline_stage_enter` / `pipeline_stage_exit` /
+   `pipeline_stage_error` wrappers on every node (incl. parallel children);
+   `pipeline_runner` logs `pipeline_stage_persisted`.
+
+**Status:** Fixed and verified under local 512MB docker; ready to redeploy.
+
+---
+
 ## [2026-08-04] Render free tier OOM (exit 137) — CUDA torch + eager MiniLM
 
 **Symptom:** Render Docker free (512MB) build OK, then container killed immediately

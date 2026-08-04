@@ -69,4 +69,20 @@ def test_load_embedding_model_singleton() -> None:
         a = le.load_embedding_model()
         b = le.load_embedding_model()
     assert a is stub and b is stub
-    ctor.assert_called_once_with(le.LOCAL_EMBED_MODEL, device="cpu")
+    ctor.assert_called_once_with(
+        le.LOCAL_EMBED_MODEL,
+        device="cpu",
+        local_files_only=False,
+    )
+
+
+def test_load_embedding_model_respects_offline_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub = MagicMock()
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    with patch("sentence_transformers.SentenceTransformer", return_value=stub) as ctor:
+        le.load_embedding_model()
+    ctor.assert_called_once_with(
+        le.LOCAL_EMBED_MODEL,
+        device="cpu",
+        local_files_only=True,
+    )

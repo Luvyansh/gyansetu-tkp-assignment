@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any, Literal, cast
 
@@ -27,14 +28,59 @@ logger = get_logger(__name__)
 
 RouteDecision = Literal["publish", "retry", "fail"]
 
+NodeFn = Callable[[dict[str, Any]], Awaitable[dict[str, Any]]]
+
+
+def _logged_node(stage: str, fn: NodeFn) -> NodeFn:
+    """Wrap a node so every stage leaves enter/exit (or error) breadcrumbs in logs."""
+
+    async def _wrap(state: dict[str, Any]) -> dict[str, Any]:
+        job_id = str(state.get("job_id") or "")
+        logger.info("pipeline_stage_enter", stage=stage, job_id=job_id)
+        started = time.perf_counter()
+        try:
+            result = await fn(state)
+        except Exception:
+            logger.exception(
+                "pipeline_stage_error",
+                stage=stage,
+                job_id=job_id,
+                elapsed_ms=int((time.perf_counter() - started) * 1000),
+            )
+            raise
+        logger.info(
+            "pipeline_stage_exit",
+            stage=stage,
+            job_id=job_id,
+            elapsed_ms=int((time.perf_counter() - started) * 1000),
+            next_stage=result.get("current_stage") if isinstance(result, dict) else None,
+            error=result.get("error") if isinstance(result, dict) else None,
+        )
+        return result
+
+    return _wrap
+
 
 async def parallel_generation(state: dict[str, Any]) -> dict[str, Any]:
     """Run stages 5–8 concurrently and merge partial state updates."""
+    job_id = str(state.get("job_id") or "")
+    logger.info(
+        "pipeline_stage_enter",
+        stage="parallel_generation",
+        job_id=job_id,
+        children=[
+            "classroom_content",
+            "activity_generation",
+            "assessment_generation",
+            "gap_analysis",
+        ],
+    )
+    started = time.perf_counter()
     results = await asyncio.gather(
-        n5_classroom_content.run(state),
-        n6_activity_generation.run(state),
-        n7_assessment_generation.run(state),
-        n8_gap_analysis.run(state),
+        _logged_node("classroom_content", n5_classroom_content.run)(state),
+        _logged_node("activity_generation", n6_activity_generation.run)(state),
+        _logged_node("assessment_generation", n7_assessment_generation.run)(state),
+        _logged_node("gap_analysis", n8_gap_analysis.run)(state),
     )
     merged: dict[str, Any] = {}
     for partial in results:
@@ -42,6 +88,13 @@ async def parallel_generation(state: dict[str, Any]) -> dict[str, Any]:
     merged["current_stage"] = "gap_analysis"
     merged["progress_pct"] = 80.0
     merged["error"] = None
+    logger.info(
+        "pipeline_stage_exit",
+        stage="parallel_generation",
+        job_id=job_id,
+        elapsed_ms=int((time.perf_counter() - started) * 1000),
+        next_stage="gap_analysis",
+    )
     return merged
 
 
@@ -129,14 +182,26 @@ def build_tkp_graph() -> Any:
     """Compile the Teacher Knowledge Package LangGraph."""
     graph = StateGraph(TKPGraphState)
 
-    graph.add_node("n1_document_intelligence", n1_document_intelligence.run)  # type: ignore[type-var]
-    graph.add_node("n2_educational_classification", n2_educational_classification.run)  # type: ignore[type-var]
-    graph.add_node("n3_knowledge_extraction", n3_knowledge_extraction.run)  # type: ignore[type-var]
-    graph.add_node("n4_teaching_planner", n4_teaching_planner.run)  # type: ignore[type-var]
-    graph.add_node("parallel_generation", parallel_generation)  # type: ignore[type-var]
-    graph.add_node("n9_validation", n9_validation.run)  # type: ignore[type-var]
-    graph.add_node("n10_publish", n10_publish.run)  # type: ignore[type-var]
-    graph.add_node("fail_job", fail_job)  # type: ignore[type-var]
+    graph.add_node(
+        "n1_document_intelligence",
+        cast(Any, _logged_node("document_intelligence", n1_document_intelligence.run)),
+    )
+    graph.add_node(
+        "n2_educational_classification",
+        cast(Any, _logged_node("educational_classification", n2_educational_classification.run)),
+    )
+    graph.add_node(
+        "n3_knowledge_extraction",
+        cast(Any, _logged_node("knowledge_extraction", n3_knowledge_extraction.run)),
+    )
+    graph.add_node(
+        "n4_teaching_planner",
+        cast(Any, _logged_node("teaching_planner", n4_teaching_planner.run)),
+    )
+    graph.add_node("parallel_generation", cast(Any, parallel_generation))
+    graph.add_node("n9_validation", cast(Any, _logged_node("validation", n9_validation.run)))
+    graph.add_node("n10_publish", cast(Any, _logged_node("publish", n10_publish.run)))
+    graph.add_node("fail_job", cast(Any, _logged_node("fail_job", fail_job)))
 
     graph.add_edge(START, "n1_document_intelligence")
     graph.add_edge("n1_document_intelligence", "n2_educational_classification")

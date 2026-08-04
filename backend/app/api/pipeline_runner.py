@@ -222,6 +222,12 @@ async def run_job_pipeline(job_id: uuid.UUID) -> None:
         state = await build_initial_state(job, document)
 
         async def _on_stage(stage: str, progress_pct: float) -> None:
+            logger.info(
+                "pipeline_stage_persisted",
+                job_id=str(job_id),
+                stage=stage,
+                progress_pct=progress_pct,
+            )
             await _update_job(
                 session,
                 job,

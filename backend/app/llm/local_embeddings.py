@@ -2,6 +2,9 @@
 
 Model is lazy-loaded on first ``embed`` call and reused thereafter (not at
 FastAPI startup — eager load + CUDA torch exceeds Render free-tier 512MB).
+Weights are expected to be present in ``HF_HOME`` (baked into the Docker image);
+production sets ``HF_HUB_OFFLINE=1`` so a missing cache fails fast instead of
+hanging on a hub download.
 Dimension must stay in sync with ``Settings.embedding_dim`` and the pgvector
 column (Alembic ``0002_embed_dim_384``).
 """
@@ -9,6 +12,7 @@ column (Alembic ``0002_embed_dim_384``).
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Any
 
 from backend.app.logging_config import get_logger
@@ -22,16 +26,32 @@ _model: Any | None = None
 _lock = asyncio.Lock()
 
 
+def _hub_offline() -> bool:
+    return os.environ.get("HF_HUB_OFFLINE", "").strip() in {"1", "true", "True", "yes"}
+
+
 def load_embedding_model() -> Any:
     """Load ``all-MiniLM-L6-v2`` once (sync — call under a lock from async path)."""
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
 
-        logger.info("local_embed_model_loading", model=LOCAL_EMBED_MODEL, dim=LOCAL_EMBED_DIM)
+        offline = _hub_offline()
+        logger.info(
+            "local_embed_model_loading",
+            model=LOCAL_EMBED_MODEL,
+            dim=LOCAL_EMBED_DIM,
+            hf_home=os.environ.get("HF_HOME"),
+            offline=offline,
+        )
         # device="cpu" avoids accidental CUDA init if a CUDA wheel slips in.
-        _model = SentenceTransformer(LOCAL_EMBED_MODEL, device="cpu")
-        logger.info("local_embed_model_ready", model=LOCAL_EMBED_MODEL)
+        # local_files_only when offline so we never block on a hub download.
+        _model = SentenceTransformer(
+            LOCAL_EMBED_MODEL,
+            device="cpu",
+            local_files_only=offline,
+        )
+        logger.info("local_embed_model_ready", model=LOCAL_EMBED_MODEL, offline=offline)
     return _model
 
 
