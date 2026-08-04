@@ -23,18 +23,53 @@ def _load_env() -> None:
     load_dotenv(_REPO_ROOT / ".env", override=False)
 
 
-def _api_key() -> str:
+def _from_st_secrets(key: str) -> str | None:
+    """Read ``key`` from ``st.secrets`` when available (Streamlit Cloud).
+
+    Returns ``None`` when secrets are absent (local dev without ``secrets.toml``),
+    Streamlit is not importable, or the key is missing/empty — callers fall back
+    to ``os.environ``.
+    """
+    try:
+        import streamlit as st
+
+        secrets = st.secrets
+    except Exception:
+        return None
+    try:
+        if key not in secrets:
+            return None
+        raw = secrets[key]
+    except Exception:
+        return None
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
+def _config_value(*keys: str, default: str = "") -> str:
+    """Prefer ``st.secrets`` for each alias, then ``os.environ``, then ``default``."""
     _load_env()
+    for key in keys:
+        secret = _from_st_secrets(key)
+        if secret:
+            return secret
+    for key in keys:
+        env = (os.environ.get(key) or "").strip()
+        if env:
+            return env
+    return default
+
+
+def _api_key() -> str:
     # Single canonical name (same as backend Settings.backend_api_key).
     # TKP_API_KEY kept as an optional override for shell/CI only.
-    return (os.environ.get("BACKEND_API_KEY") or os.environ.get("TKP_API_KEY") or "").strip()
+    return _config_value("BACKEND_API_KEY", "TKP_API_KEY")
 
 
 def _base_url() -> str:
-    _load_env()
-    return (os.environ.get("TKP_API_URL") or os.environ.get("BACKEND_URL") or _DEFAULT_BASE).rstrip(
-        "/"
-    )
+    return _config_value("TKP_API_URL", "BACKEND_URL", default=_DEFAULT_BASE).rstrip("/")
 
 
 class TKPApiClient:
@@ -198,5 +233,5 @@ class TKPApiClient:
 
 
 def get_client() -> TKPApiClient:
-    """Factory that reads URL/key from the environment (never logs secrets)."""
+    """Factory that reads URL/key from ``st.secrets`` then the environment (never logs secrets)."""
     return TKPApiClient()
