@@ -4,9 +4,43 @@
 > assessment. See [LICENSE](./LICENSE) — usage beyond evaluating this application
 > requires the author's permission.
 
-Turns educational documents (**PDF / DOCX / PPTX**) into a structured
+Turans educational documents (**PDF / DOCX / PPTX**) into a structured
 `TeacherKnowledgePackage.json` plus exportable PDFs (lesson plan, teacher guide,
 assessment book) through a **10-stage LangGraph** pipeline.
+
+[![Gyansetu TKP — Live UI](screenshots/UI-home-improved.png)](https://luvyansh-tkp.streamlit.app/)
+*Click the image above to open the live UI on Streamlit Cloud.*
+
+## Screenshots
+
+| | |
+|---|---|
+| ![App home](screenshots/UI-home-improved.png) | ![Live application](screenshots/live-application.png) |
+| ![Pipeline running 1](screenshots/tkp-pipeline-running-1.png) | ![Pipeline running 2](screenshots/tkp-pipeline-running-2.png) |
+| ![Deployment](screenshots/deployment-1.png) | ![Render deployment](screenshots/render-deployment.png) |
+
+## Live Demo
+
+| Surface | Provider | URL / Check |
+|---|---|---|
+| Frontend | Streamlit Cloud | https://luvyansh-tkp.streamlit.app/ |
+| Backend | Render (health check) | `Invoke-RestMethod https://gyansetu-tkp-assignment.onrender.com/health` |
+| Database | Neon Postgres (hosted) | PostgreSQL · pgvector |
+
+![Neon Postgres](screenshots/neon-db.png)
+
+The database is deployed on **Neon Postgres** (hosted PostgreSQL with pgvector),
+so no local Docker compose container is required to run against the live backend.
+
+> **Free-tier caveat:** The live demo runs entirely on free-tier services. The
+> Render backend has only ~500 MB RAM and may return HTTP 500 or crash with
+> **out-of-memory (OOM)** errors under load. Gemini free-tier rate limits (`429`)
+> may also be reached, at which point generation falls back to Groq / full Flash.
+> Services may be paused between visits, so the first request can be slow.
+
+---
+
+## Setup (local)
 
 | Surface | URL (local) | Stack |
 |---|---|---|
